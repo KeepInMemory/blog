@@ -126,4 +126,4 @@ backup:
   theme: yilia,landscape
   message: Back up
   repository:
-    github: git@github.com:KeepInMemory/KeepInMemory.github.io.git,hexo
+    github: git@github.com:KeepInMemory/KeepInMemory.github.io.git,backup
