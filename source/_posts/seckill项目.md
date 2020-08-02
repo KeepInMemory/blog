@@ -5,6 +5,8 @@ tags:
   - 项目
 ---
 
+<!--more-->
+
 ## 项目创建
 
 项目的创建通过了Spring Boot项目的快速创建方式，从Spring官网选择Starter进行创建
