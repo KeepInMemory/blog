@@ -101,10 +101,11 @@ deploy:
   type: git
   repository: ssh://git@github.com/KeepInMemory/KeepInMemory.github.io
   branch: master
+  
+# backup
 backup:
-  type: git
-  theme: yilia,landscape
-  repository: https://github.com/KeepInMemory/KeepInMemory.github.io.git,backup
+  branch: hexo
+  repo: git@github.com/KeepInMemory/KeepInMemory.github.io
 
 jsonContent:
   meta: false
