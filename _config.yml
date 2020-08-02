@@ -104,8 +104,7 @@ deploy:
 backup:
   type: git
   theme: yilia,landscape
-  repository:
-    github: git@https://github.com/KeepInMemory/KeepInMemory.github.io.git,backup
+  repository: https://github.com/KeepInMemory/KeepInMemory.github.io.git,backup
 
 jsonContent:
   meta: false
