@@ -8,15 +8,15 @@
   <link rel="dns-prefetch" href="http://KeepInMemory.github.io">
   <title>线程的基本操作2 | HanBlog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="wait和notify wait和notify方法不在Thread中，而是在Object中，也就是说每个对象都有这两个方法。 wait、notify和notifyAll方法必须包含在synchronized语句块中，也就是这些方法首先要在对象上实现互斥加锁才能运行。 那么为什么wait、notify和notifyAll方法必须再synchronized中呢？ 首先每一个对象都有一个与之对应的监视器">
+  <meta name="description" content="wait和notify wait和notify方法不在Thread中，而是在Object中，也就是说每个对象都有这两个方法。 wait、notify和notifyAll方法必须包含在synchronized语句块中，也就是这些方法首先要在对象上实现互斥加锁才能运行。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线程的基本操作2">
 <meta property="og:url" content="http://keepinmemory.github.io/2019/09/10/%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C2/index.html">
 <meta property="og:site_name" content="HanBlog">
-<meta property="og:description" content="wait和notify wait和notify方法不在Thread中，而是在Object中，也就是说每个对象都有这两个方法。 wait、notify和notifyAll方法必须包含在synchronized语句块中，也就是这些方法首先要在对象上实现互斥加锁才能运行。 那么为什么wait、notify和notifyAll方法必须再synchronized中呢？ 首先每一个对象都有一个与之对应的监视器">
+<meta property="og:description" content="wait和notify wait和notify方法不在Thread中，而是在Object中，也就是说每个对象都有这两个方法。 wait、notify和notifyAll方法必须包含在synchronized语句块中，也就是这些方法首先要在对象上实现互斥加锁才能运行。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2019-09-10T04:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-02T11:38:54.555Z">
+<meta property="article:modified_time" content="2020-08-02T12:23:34.373Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="实战Java高并发程序设计">
 <meta property="article:tag" content="线程">
@@ -177,6 +177,8 @@
         <h3 id="wait和notify"><a href="#wait和notify" class="headerlink" title="wait和notify"></a>wait和notify</h3><hr>
 <p>wait和notify方法不在Thread中，而是在Object中，也就是说每个对象都有这两个方法。</p>
 <p>wait、notify和notifyAll方法必须包含在synchronized语句块中，也就是这些方法首先要在对象上实现互斥加锁才能运行。</p>
+<a id="more"></a>
+
 <p><strong>那么为什么wait、notify和notifyAll方法必须再synchronized中呢？</strong></p>
 <p>首先每一个对象都有一个与之对应的监视器，每一个监视器里面都有一个该对象的锁和一个等待队列和一个就绪队列。两个队列中的进程为想获得锁执行并发块。</p>
 <p>每个锁对象都有两个队列，一个是就绪队列，一个是阻塞队列，就绪队列存储了将要获得锁的线程，阻塞队列存储</p>
@@ -468,6 +470,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
               </li>
              
@@ -477,10 +483,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -496,11 +498,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -520,10 +522,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
@@ -532,7 +530,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -544,23 +554,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">项目</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -572,6 +574,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">未来日记</a>
               </li>
              
@@ -580,15 +590,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -600,19 +602,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">锁</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">静态</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">静态</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
             
             <div class="clearfix"></div>

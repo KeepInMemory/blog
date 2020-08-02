@@ -6,7 +6,11 @@ tags:
   - ThreadLocal
 ---
 
+[TOC]
+
 ThreadLocal类用来提供线程内部的局部变量
+
+<!--more-->
 
 ### 底层设计
 

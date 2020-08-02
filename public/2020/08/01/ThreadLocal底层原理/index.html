@@ -8,19 +8,19 @@
   <link rel="dns-prefetch" href="http://KeepInMemory.github.io">
   <title>ThreadLocal底层原理 | HanBlog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="ThreadLocal类用来提供线程内部的局部变量 底层设计 早期的设计是每个ThreadLocal维护一个ThreadLocalMap，里面的Entry&lt;Thread,value&gt; JDK8的改进：每个Thread维护一个ThreadLocalMap，里面的Entry&lt;ThreadLocal,value&gt; 改进的好处： 1.每个Map存储的Entry数量变少  2.当Th">
+  <meta name="description" content="[TOC] ThreadLocal类用来提供线程内部的局部变量">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ThreadLocal底层原理">
 <meta property="og:url" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="HanBlog">
-<meta property="og:description" content="ThreadLocal类用来提供线程内部的局部变量 底层设计 早期的设计是每个ThreadLocal维护一个ThreadLocalMap，里面的Entry&lt;Thread,value&gt; JDK8的改进：每个Thread维护一个ThreadLocalMap，里面的Entry&lt;ThreadLocal,value&gt; 改进的好处： 1.每个Map存储的Entry数量变少  2.当Th">
+<meta property="og:description" content="[TOC] ThreadLocal类用来提供线程内部的局部变量">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/1.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/2.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/3.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/4.png">
 <meta property="article:published_time" content="2020-08-01T02:06:44.000Z">
-<meta property="article:modified_time" content="2020-08-02T11:38:54.490Z">
+<meta property="article:modified_time" content="2020-08-02T12:27:21.285Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="ThreadLocal">
 <meta name="twitter:card" content="summary">
@@ -178,7 +178,10 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>ThreadLocal类用来提供线程内部的局部变量</p>
+        <p>[TOC]</p>
+<p>ThreadLocal类用来提供线程内部的局部变量</p>
+<a id="more"></a>
+
 <h3 id="底层设计"><a href="#底层设计" class="headerlink" title="底层设计"></a>底层设计</h3><p><img src="/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/1.png" alt="1"></p>
 <p>早期的设计是每个ThreadLocal维护一个ThreadLocalMap，里面的Entry&lt;Thread,value&gt;</p>
 <p>JDK8的改进：每个Thread维护一个ThreadLocalMap，里面的Entry&lt;ThreadLocal,value&gt;</p>
@@ -458,6 +461,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
               </li>
              
@@ -467,10 +474,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -486,11 +489,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -510,10 +513,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
@@ -522,7 +521,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -534,23 +545,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">项目</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -562,6 +565,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">未来日记</a>
               </li>
              
@@ -570,15 +581,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -590,19 +593,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">锁</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">静态</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">静态</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
             
             <div class="clearfix"></div>

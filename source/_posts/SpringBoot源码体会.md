@@ -11,6 +11,8 @@ tags:
 
 发现以往定制嵌入式Servlet的相关配置都是使用两种方式，一是在properties或者yml文件中写servlet.port=8081、servlet.tomcat.uri-encoding=UTF-8这种，二是新建一个类继承EmbeddedServletContainerCustomizer（内嵌Servlet容器定制器），重写里面的customize方法。
 
+<!--more-->
+
 #### 两种方式的工作原理
 
 EmbeddedServletContainerAutoConfiguration这个类是内置Servlet容器的自动配置类

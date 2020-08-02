@@ -8,6 +8,8 @@ tags:
 
 ThreadLocal是一个线程的局部变量，只有当前线程可以访问，是线程安全的。
 
+<!--more-->
+
 ThreadLocal人手一只笔，指的是
 
 ```java

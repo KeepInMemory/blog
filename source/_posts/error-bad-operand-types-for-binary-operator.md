@@ -7,6 +7,8 @@ tags:
 
 今天在刷LeetCode时，代码爆了'error: bad operand types for binary operator &'错误
 
+<!--more-->
+
 原题目和代码都贴出来
 
 ![1](error-bad-operand-types-for-binary-operator/1.png)

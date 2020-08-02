@@ -10,6 +10,8 @@ Spring对Jdbc API的简单封装,还有很多相似的模板类,例如RedisTempl
 
 开发步骤:1.导入Spring-jdbc和Spring-tx坐标 2.创建数据库实体 3.创建JdbcTemplate对象 4.执行数据库操作
 
+<!--more-->
+
 ```java
     <dependency>
       <groupId>org.springframework</groupId>

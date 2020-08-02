@@ -16,6 +16,8 @@ NIO：准备好了再通知我
 
 **Selector**：Channel可以实习SelectableChannel类，表示可被选择的通道，实现这个类的Channel可以被Selector管理。一个Selector可以管理多个SelectableChannel。当SelectableChannel的数据准备好时，Selector会接到通知去处理数据。
 
+<!--more-->
+
 Socket Channel是SelectableChannel的一种，一个SoketChannel表示一个客户端连接。这些Socket  Channel由一个Selector管理，一个Selector由一个线程管理。所以可以通过一个或者少数线程来处理大量客户端连接。当客户端的数据没有准备好时，Selector通过轮询的方式等待。
 
 ```java

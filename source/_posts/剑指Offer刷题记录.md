@@ -31,6 +31,8 @@ public class Solution {
 }
 ```
 
+<!--more-->
+
 #### 从头到尾打印链表
 
 ```java

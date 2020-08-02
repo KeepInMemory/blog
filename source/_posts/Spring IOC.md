@@ -16,6 +16,8 @@ DI：依赖注入
 
 ​	容器能知道哪个组件运行的时候需要另一个组件；容器通过反射的形式，将容器准备好的对象注入（利用反射给属性赋值）
 
+<!--more-->
+
 ![image-20200612150607383](C:\Users\75959\AppData\Roaming\Typora\typora-user-images\image-20200612150607383.png)
 
 1.导入Spring开发的基本包坐标 2.编写Dao接口和实现类 3.创建Spring核心配置文件 4.在Spring配置文件中配置UserDaoImpl 5.使用Spring的API获得Bean实例

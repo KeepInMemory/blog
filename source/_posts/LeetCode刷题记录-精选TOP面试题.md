@@ -46,6 +46,8 @@ class Solution {
 }
 ```
 
+<!--more-->
+
 #### 50.Pow(x,n)
 
 ```java

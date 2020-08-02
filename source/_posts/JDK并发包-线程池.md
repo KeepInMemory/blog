@@ -22,6 +22,8 @@ newSingleThreadScheduledExecutor方法：返回一个ScheduledExecutorService对
 
 newScheduledThreadPool方法：返回一个ScheduledExecutorService对象，线程池可以指定线程数量。
 
+<!--more-->
+
 ```java
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

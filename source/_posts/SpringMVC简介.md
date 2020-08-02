@@ -9,6 +9,8 @@ SpringMVC是一种基于Java实现的MVC设计模型的请求驱动类型的轻�
 
 1.导入SpringMVC的坐标 2.配置Servlet前端控制器DispatherServlet 3.编写Controller类和视图页面 4.将Controller使用注解配置到Spring容器(@Controller)，配置请求映射的是哪个方法 5.配置spring-mvc.xml文件(配置组件扫描) 6.执行访问测试
 
+<!--more-->
+
 1.prm.xml导坐标
 
 ```java

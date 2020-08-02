@@ -7,6 +7,8 @@ tags:
 
 每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），Monitor对象里记录了WaitSet（处于等待状态的线程集合），EntryList（处于阻塞状态的线程集合），Owner（当前锁对象的所有者）
 
+<!--more-->
+
 wait/notify原理：Owner线程发现条件不满足，使用wait方法可以进入WaitSet变成等待状态，等待状态的线程会在Owner线程调用notify或notifyAll唤醒，唤醒后不会立刻获得锁，会进入EntryList重新竞争
 
 ![1](Synchronized-Monitor-锁/1.png)

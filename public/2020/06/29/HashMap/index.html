@@ -16,7 +16,7 @@
 <meta property="og:description" content="HashMap什么是HashMapHashMap是基于哈希表的Map接口实现，它是以key-value存储形式存在，用来放键值对 它的特点是，1.存取是无序的 2.键值都可以为null，但是键最多只能有一个null JDK1.8之前是由数组+链表组成的，数组是HashMap的主体，用数组是为了方便索引查询，链表则是为了解决哈希冲突。HashMap的默认初始长度是16，采用头插法 JDK1.8以前有">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-06-29T01:19:17.000Z">
-<meta property="article:modified_time" content="2020-08-02T11:38:54.394Z">
+<meta property="article:modified_time" content="2020-08-02T12:24:01.719Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="面经">
 <meta name="twitter:card" content="summary">
@@ -180,6 +180,8 @@
 <p>JDK1.8为了解决Rehash时可能会产生死锁的问题采用了尾插法</p>
 <p>JDK1.8之后为了解决哈希碰撞严重后退化成链表的问题，数据结构改为了数组+链表+红黑树的形式，当链表长度大于阈值8并且当前数组的长度大于64时，此时该哈希桶上的所有数据改为红黑树存储，如果链表长度大于8但是数组长度小于64不会改成红黑树，而是进行数组扩容。这是因为数组较小，搜索时间相对较短，红黑树需要进行左旋右旋变色等操作来保持平衡，改成红黑树反而会降低效率。当哈希桶元素数量降到6就退化成为链表。</p>
 <p>JDK1.8虽然解决了Rehash时死锁的问题，但还是会存在其他多线程不安全的问题，并发环境下使用ConcurrentHashMap</p>
+<a id="more"></a>
+
 <h4 id="为什么数组大小一定是2的幂"><a href="#为什么数组大小一定是2的幂" class="headerlink" title="为什么数组大小一定是2的幂"></a>为什么数组大小一定是2的幂</h4><p>Hash值范围大概是40亿个数，不可能创建一个40亿长度的数组，内存就爆了，所以计算后的hash值是不能拿来直接用的，还需要进行计算索引值，一般是进行取模操作，源码中在计算出hash值之后有个indexFor方法计算索引值，计算方法是hash&amp;(length-1)，如果是2的n次方，即10000…后面全是0，减一后会变成01111..后面全是1，此时跟哈希值按位与的话能让数据分配均匀，减少碰撞。如果不是2的幂，那么某些位会成为0，此时hash值和0与怎么样都是0，结果是有些Hash桶永远是空的。</p>
 <p>数组长度-1正好相当于一个“低位掩码”。“与”操作的结果就是散列值的高位全部归零，只保留低位值，用来做数组下标访问。我们知道，位运算的代价比求模运算小的多，因此在进行这种计算时用位运算的话能带来更高的性能。</p>
 <p>确定桶下标的最后一步是将 key 的 hash 值对桶个数取模：hash%capacity，如果能保证 capacity 为 2 的 n 次方，那么就可以将这个操作转换为位运算。</p>
@@ -458,6 +460,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
               </li>
              
@@ -467,10 +473,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -486,11 +488,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -510,10 +512,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
@@ -522,7 +520,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -534,23 +544,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">项目</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -562,6 +564,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">未来日记</a>
               </li>
              
@@ -570,15 +580,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -590,19 +592,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">锁</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">静态</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">静态</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
             
             <div class="clearfix"></div>

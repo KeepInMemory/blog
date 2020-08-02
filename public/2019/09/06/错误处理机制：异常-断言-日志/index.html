@@ -8,16 +8,16 @@
   <link rel="dns-prefetch" href="http://KeepInMemory.github.io">
   <title>错误处理机制:异常|断言|日志 | HanBlog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="异常Exception与Error Error和Exception都派生于Throwable，Error描述了 Java 运行时系统的内部错误和资源耗尽错误，出现了Error抛出来也没有用，只能终止程序。 再次抛出异常再次抛出异常有两种方式，第一种方式是使用异常的构造器 12345678try&amp;#123;    &amp;#125;catch(SQLException e)&amp;#123;    thorw">
+  <meta name="description" content="异常Exception与Error Error和Exception都派生于Throwable，Error描述了 Java 运行时系统的内部错误和资源耗尽错误，出现了Error抛出来也没有用，只能终止程序。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="错误处理机制:异常|断言|日志">
 <meta property="og:url" content="http://keepinmemory.github.io/2019/09/06/%E9%94%99%E8%AF%AF%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6%EF%BC%9A%E5%BC%82%E5%B8%B8-%E6%96%AD%E8%A8%80-%E6%97%A5%E5%BF%97/index.html">
 <meta property="og:site_name" content="HanBlog">
-<meta property="og:description" content="异常Exception与Error Error和Exception都派生于Throwable，Error描述了 Java 运行时系统的内部错误和资源耗尽错误，出现了Error抛出来也没有用，只能终止程序。 再次抛出异常再次抛出异常有两种方式，第一种方式是使用异常的构造器 12345678try&amp;#123;    &amp;#125;catch(SQLException e)&amp;#123;    thorw">
+<meta property="og:description" content="异常Exception与Error Error和Exception都派生于Throwable，Error描述了 Java 运行时系统的内部错误和资源耗尽错误，出现了Error抛出来也没有用，只能终止程序。">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://www.runoob.com/wp-content/uploads/2013/12/12-130Q1234I6223.jpg">
 <meta property="article:published_time" content="2019-09-06T04:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-02T11:38:54.562Z">
+<meta property="article:modified_time" content="2020-08-02T12:20:14.237Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="Java核心卷">
 <meta property="article:tag" content="错误处理">
@@ -178,6 +178,8 @@
       
         <h3 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h3><h4 id="Exception与Error"><a href="#Exception与Error" class="headerlink" title="Exception与Error"></a>Exception与Error</h4><p><img src="https://www.runoob.com/wp-content/uploads/2013/12/12-130Q1234I6223.jpg" alt="img"></p>
 <p>Error和Exception都派生于Throwable，Error描述了 Java 运行时系统的内部错误和资源耗尽错误，出现了Error抛出来也没有用，只能终止程序。</p>
+<a id="more"></a>
+
 <h4 id="再次抛出异常"><a href="#再次抛出异常" class="headerlink" title="再次抛出异常"></a>再次抛出异常</h4><p>再次抛出异常有两种方式，第一种方式是使用异常的构造器</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span></span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">catch</span>(SQLException e)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="function">thorw new <span class="title">ServletException</span><span class="params">(<span class="string">"database error:"</span> + e.getMessage()</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -325,8 +327,8 @@
     </a>
   
   
-    <a href="/2019/09/05/LeetCode%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95-%E6%95%B0%E7%BB%84/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">LeetCode刷题记录-数组</div>
+    <a href="/2019/09/04/%E5%86%85%E9%83%A8%E7%B1%BB/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">内部类</div>
       <i class="icon-circle-right"></i>
     </a>
   
@@ -452,6 +454,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
               </li>
              
@@ -461,10 +467,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">线程池</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -480,11 +482,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -504,10 +506,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
@@ -516,7 +514,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -528,23 +538,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">项目</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -556,6 +558,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">未来日记</a>
               </li>
              
@@ -564,15 +574,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -584,19 +586,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">锁</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">静态</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">静态</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
             
             <div class="clearfix"></div>

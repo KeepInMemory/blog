@@ -14,6 +14,8 @@ tags:
 
 实现（类）：是集合接口的具体实现。从本质上讲，它们是可重复使用的数据结构，例如：ArrayList、LinkedList、HashSet、HashMap。
 
+<!--more-->
+
 ### 迭代器
 
 ------
