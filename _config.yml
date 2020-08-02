@@ -124,5 +124,4 @@ jsonContent:
 backup:
     type: git
     theme: yilia,landscape
-    repository:
-       github: git@github.com:KeepInMemory/KeepInMemory.github.io.git,backup
+    repository: ssh://git@github.com/KeepInMemory/KeepInMemory.github.io,backup
