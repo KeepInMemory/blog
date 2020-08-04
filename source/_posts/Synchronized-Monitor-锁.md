@@ -5,7 +5,34 @@ tags:
   - Synchronized
 ---
 
-每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），Monitor对象里记录了WaitSet（处于等待状态的线程集合），EntryList（处于阻塞状态的线程集合），Owner（当前锁对象的所有者）
+每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：
+
+- _owner：指向持有ObjectMonitor对象的线程
+- _WaitSet：存放处于wait状态的线程队列
+- _EntryList：存放处于等待锁block状态的线程队列
+- _recursions：锁的重入次数
+- _count：用来记录该线程获取锁的次数
+
+```hpp
+ObjectMonitor() {
+_header       = NULL;
+_count        = 0;
+_waiters      = 0,
+_recursions   = 0;
+_object       = NULL;
+_owner        = NULL;
+_WaitSet      = NULL;
+_WaitSetLock  = 0 ;
+_Responsible  = NULL ;
+_succ         = NULL ;
+_cxq          = NULL ;
+FreeNext      = NULL ;
+_EntryList    = NULL ;
+_SpinFreq     = 0 ;
+_SpinClock    = 0 ;
+OwnerIsThread = 0 ;
+}
+```
 
 <!--more-->
 

@@ -694,3 +694,178 @@ public UserVO getUser(@RequestParam(name="id") Integer id) {
 
 至此做了完整的读操作展示，从Controller层到Service层到DataObject层，DataObject层负责数据存储和到Service的传输，在Service层组装了需要的一个核心领域模型做下一步的处理，Controller层做了ViewObject，保证了UI只使用到它需要展示的字段
 
+## 定义通用的返回对象
+
+项目中如果出现了异常，前端会出现自带的Error Page，我们需要将成功和异常统一起来
+
+### Response层
+
+创建response包，用来处理HTTP返回
+
+新建CommonReturnType类
+
+```java
+package com.seckillproject.response;
+
+public class CommonReturnType {
+
+    //表明对应请求的返回处理"success"或者"fail"
+    private String status;
+    //若status="success",data返回前端需要数据
+    //若Status="fail",data使用通用的错误码格式
+    private Object data;
+
+    //定义一个通用的创建方法
+    public static CommonReturnType create(Object result) {
+        return CommonReturnType.create(result,"success");
+    }
+    public static CommonReturnType create(Object result,String status) {
+        CommonReturnType type = new CommonReturnType();
+        type.setData(result);
+        type.setStatus(status);
+        return type;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Object getData() {
+        return data;
+    }
+
+    public void setData(Object data) {
+        this.data = data;
+    }
+}
+```
+
+UserController的getUser方法也要更改，返回通用对象
+
+```java
+    @RequestMapping("/get")
+    @ResponseBody
+    public CommonReturnType getUser(@RequestParam(name="id") Integer id) {
+        //调用service服务器获取对应id的用户对象并返回给前端
+        UserModel userModel = userService.getUserById(id);
+
+        //将核心领域模型用户对象转化为可提供UI使用的viewObject
+        UserVO userVO =  convertFromUserModel(userModel);
+        //返回通用对象
+        return CommonReturnType.create(userVO);
+    }
+```
+
+测试发现返回了通用对象
+
+![10](seckill项目/10.png)
+
+### error层
+
+#### CommonError接口
+
+项目下创建error层，创建CommonError接口
+
+```java
+package com.seckillproject.error;
+
+public interface CommonError {
+    public int getErrCode();
+    public String getErrMsg();
+
+    public CommonError setErrMsg(String errMsg);
+}
+```
+
+#### EmBusinessError类
+
+创建枚举类型的EmBusinessError去实现CommonError接口
+
+定义一个简单的错误码USER_NOT_EXIST，值为10001。一般企业开发需要一个统一的全局错误码，所以让10000开头为用户信息相关错误定义。
+
+定义了通用错误类型，比如值为00001，含义参数不合法。这样可以省去很多地方都定义错误类型，比如传入方法里邮箱不合法、手机号不合法等等，都使用通用错误类型。它们的errCode虽然是一样的，但是errMsg却根据场景不同要有变化，所以接口中定义的public CommonError setErrMsg(String errMsg);就是为了改变不同场景下的errMsg
+
+```java
+package com.seckillproject.error;
+
+public enum EmBusinessError implements CommonError{
+    //通用错误类型00001
+    PARAMETER_VALIDATION_ERROR(00001,"参数不合法"),
+
+    //10000开头为用户信息相关错误定义
+    USER_NOT_EXIST(10001,"用户不存在")
+    ;
+    private int errCode;
+    private String errMsg;
+
+    private EmBusinessError(int errCode,String errMsg) {
+        this.errCode = errCode;
+        this.errMsg = errMsg;
+    }
+    @Override
+    public int getErrCode() {
+        return this.errCode;
+    }
+
+    @Override
+    public String getErrMsg() {
+        return this.errMsg;
+    }
+
+    @Override
+    public CommonError setErrMsg(String errMsg) {
+        this.errMsg = errMsg;
+        return this;
+    }
+}
+```
+
+#### BusinessException类
+
+一般程序出了异常，统一抛出Exception，直到Controller层的SpringBootHandler捕获处理
+
+创建BusinessException类
+
+```java
+package com.seckillproject.error;
+
+//包装器业务异常类实现
+public class BusinessException extends Exception implements CommonError{
+    private CommonError commonError;
+
+    //直接接收EmBusinessError的传参用于构造业务异常
+    public BusinessException(CommonError commonError) {
+        super();
+        this.commonError = commonError;
+    }
+
+    //接收自定义errMsg的方式构造业务异常
+    public BusinessException(CommonError commonError,String errMsg) {
+        super();
+        this.commonError = commonError;
+        this.commonError.setErrMsg(errMsg);
+    }
+
+    @Override
+    public int getErrCode() {
+        return this.commonError.getErrCode();
+    }
+
+    @Override
+    public String getErrMsg() {
+        return this.commonError.getErrMsg();
+    }
+
+    @Override
+    public CommonError setErrMsg(String errMsg) {
+        this.commonError.setErrMsg(errMsg);
+        return this;
+    }
+}
+```
+
+BusinessException和EmBusinessError枚举类都实现了CommonError接口，以至于外部可以通过new EmBusinessError和new BusinessException都可以由errCode和errMsg的组装定义，这两个类都要实现setErrMsg方法，将原本的errMsg给覆盖掉

@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://KeepInMemory.github.io">
   <title>Synchronized底层-Monitor | HanBlog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），Monitor对象里记录了WaitSet（处于等待状态的线程集合），EntryList（处于阻塞状态的线程集合），Owner（当前锁对象的所有者）">
+  <meta name="description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：  _owner：指向持有ObjectMonitor对象的线程 _WaitSet：存放处于wait状态的线程队列 _EntryList：存放处于等待锁block状态的线程队列 _recursions：锁的重入次数 _count：用来记录该线程获取锁的次数  123">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Synchronized底层-Monitor">
 <meta property="og:url" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/index.html">
 <meta property="og:site_name" content="HanBlog">
-<meta property="og:description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），Monitor对象里记录了WaitSet（处于等待状态的线程集合），EntryList（处于阻塞状态的线程集合），Owner（当前锁对象的所有者）">
+<meta property="og:description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：  _owner：指向持有ObjectMonitor对象的线程 _WaitSet：存放处于wait状态的线程队列 _EntryList：存放处于等待锁block状态的线程队列 _recursions：锁的重入次数 _count：用来记录该线程获取锁的次数  123">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/1.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/2.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/3.png">
 <meta property="article:published_time" content="2020-07-30T04:28:48.000Z">
-<meta property="article:modified_time" content="2020-08-02T12:30:56.650Z">
+<meta property="article:modified_time" content="2020-08-03T02:25:52.357Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="Synchronized">
 <meta name="twitter:card" content="summary">
@@ -177,7 +177,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），Monitor对象里记录了WaitSet（处于等待状态的线程集合），EntryList（处于阻塞状态的线程集合），Owner（当前锁对象的所有者）</p>
+        <p>每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：</p>
+<ul>
+<li>_owner：指向持有ObjectMonitor对象的线程</li>
+<li>_WaitSet：存放处于wait状态的线程队列</li>
+<li>_EntryList：存放处于等待锁block状态的线程队列</li>
+<li>_recursions：锁的重入次数</li>
+<li>_count：用来记录该线程获取锁的次数</li>
+</ul>
+<figure class="highlight hpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ObjectMonitor() &#123;</span><br><span class="line">_header       = <span class="literal">NULL</span>;</span><br><span class="line">_count        = <span class="number">0</span>;</span><br><span class="line">_waiters      = <span class="number">0</span>,</span><br><span class="line">_recursions   = <span class="number">0</span>;</span><br><span class="line">_object       = <span class="literal">NULL</span>;</span><br><span class="line">_owner        = <span class="literal">NULL</span>;</span><br><span class="line">_WaitSet      = <span class="literal">NULL</span>;</span><br><span class="line">_WaitSetLock  = <span class="number">0</span> ;</span><br><span class="line">_Responsible  = <span class="literal">NULL</span> ;</span><br><span class="line">_succ         = <span class="literal">NULL</span> ;</span><br><span class="line">_cxq          = <span class="literal">NULL</span> ;</span><br><span class="line">FreeNext      = <span class="literal">NULL</span> ;</span><br><span class="line">_EntryList    = <span class="literal">NULL</span> ;</span><br><span class="line">_SpinFreq     = <span class="number">0</span> ;</span><br><span class="line">_SpinClock    = <span class="number">0</span> ;</span><br><span class="line">OwnerIsThread = <span class="number">0</span> ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <a id="more"></a>
 
 <p>wait/notify原理：Owner线程发现条件不满足，使用wait方法可以进入WaitSet变成等待状态，等待状态的线程会在Owner线程调用notify或notifyAll唤醒，唤醒后不会立刻获得锁，会进入EntryList重新竞争</p>
@@ -445,15 +454,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">面经</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -461,11 +466,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">Java8</a>
+                <a href="javascript:void(0)" class="js-tag color3">同步</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">同步</a>
+                <a href="javascript:void(0)" class="js-tag color3">面经</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -477,15 +486,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">Java8</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">集合</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -497,15 +510,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">AOP</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">事务</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">AOP</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -513,11 +522,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
+                <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -525,15 +534,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">项目</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -541,7 +546,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">反射</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">项目</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -549,7 +558,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color3">反射</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -557,7 +566,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">泛型</a>
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -569,6 +578,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">泛型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">sync</a>
               </li>
              
@@ -577,15 +590,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">静态</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
             
             <div class="clearfix"></div>
