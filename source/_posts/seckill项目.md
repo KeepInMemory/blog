@@ -5,6 +5,8 @@ tags:
   - 项目
 ---
 
+# 基础能力建设
+
 ## 项目创建
 
 项目的创建通过了Spring Boot项目的快速创建方式，从Spring官网选择Starter进行创建
@@ -365,7 +367,7 @@ mybatis支持的映射方式有基于xml的mapper.xml文件，和基于注解的
 
 ## 完整SpringMVC 查询用户信息
 
-### Service层
+### service层
 
 service层下有UserService接口
 
@@ -404,7 +406,7 @@ public class UserServiceImpl implements UserService {
 
 #### model层
 
-##### UserModel
+##### UserModel类
 
 因为企业级开发里是不能从Service层里传出UserDo对象的，所以还需要在Service里加一个model包，用来定义业务逻辑交互，实现UserModel
 
@@ -560,7 +562,7 @@ public UserModel getUserById(Integer id) {
 }
 ```
 
-### Controller层
+### controller层
 
 创建Controller包下的UserController
 
@@ -601,7 +603,7 @@ public class UserController {
 
 因此在Controller里加一层ViewObject
 
-#### ViewObject层
+#### viewobject层
 
 ViewObject里创建UserVO
 
@@ -696,9 +698,9 @@ public UserVO getUser(@RequestParam(name="id") Integer id) {
 
 ## 定义通用的返回对象
 
-项目中如果出现了异常，前端会出现自带的Error Page，我们需要将成功和异常统一起来
+项目中如果出现了异常，异常会抛到Tomcat容器层中，Tomcat帮我们处理，前端会出现自带的Error Page，我们需要将成功和异常统一起来
 
-### Response层
+### response层
 
 创建response包，用来处理HTTP返回
 
@@ -869,3 +871,462 @@ public class BusinessException extends Exception implements CommonError{
 ```
 
 BusinessException和EmBusinessError枚举类都实现了CommonError接口，以至于外部可以通过new EmBusinessError和new BusinessException都可以由errCode和errMsg的组装定义，这两个类都要实现setErrMsg方法，将原本的errMsg给覆盖掉
+
+### controller层
+
+#### exceptionHandler
+
+对于Web系统来说e，Controller层是业务处理的最后一道关口，如果Controller层不处理异常，抛给Tomcat，就会出现自带的Error Page页，所以需要我们在Controller统一处理
+
+在Controller层写handlerException方法
+
+```java
+//定义exceptionhandler解决未被controller层吸收的exception
+@ExceptionHandler(Exception.class)
+@ResponseStatus(HttpStatus.OK)
+@ResponseBody//不加ResponseBody就会返回链接地址，而不是对象
+public Object handlerException(HttpServletRequest httpServletRequest,Exception exception) {
+    CommonReturnType commonReturnType = new CommonReturnType();
+    commonReturnType.setStatus("fail");
+    commonReturnType.setData(exception);
+    return commonReturnType;
+}
+```
+
+使用@ExceptionHandler指明处理的是哪个异常，@ResponseStatus指明方法返回的是什么HttpStatus，返回OK不会出现自带错误页面
+
+运行项目，输入http://localhost:8080/user/get?id=2，返回了通用返回对象
+
+![11](seckill项目/11.png)
+
+但是这些返回的Json里面还有我们不需要的东西，对handlerException的代码进一步改造
+
+```java
+@ExceptionHandler(Exception.class)
+@ResponseStatus(HttpStatus.OK)
+@ResponseBody
+public Object handlerException(HttpServletRequest httpServletRequest,Exception exception) {
+    BusinessException businessException = (BusinessException)exception;
+
+    Map<String,Object> responseData = new HashMap<>();
+    responseData.put("errCode",businessException.getErrCode());
+    responseData.put("errMsg",businessException.getErrMsg());
+    return CommonReturnType.create(responseData,"fail");
+}
+```
+
+再次运行测试，输入http://localhost:8080/user/get?id=2
+
+![12](seckill项目/12.png)
+
+可以看到只返回了我们需要的字段，即status为fail的时候，返回的data为errCode+errMsg的类型
+
+如果传过来的exception不是BusinessException的类型，需要定义一个新的类型错误，未知错误
+
+```java
+//通用错误类型10001
+PARAMETER_VALIDATION_ERROR(10001,"参数不合法"),
+UNKNOWN_ERROR(10002,"未知错误"),
+//20000开头为用户信息相关错误定义
+USER_NOT_EXIST(20001,"用户不存在")
+;
+```
+
+这里本来是下面这样的
+
+```java
+//通用错误类型00001
+PARAMETER_VALIDATION_ERROR(00001,"参数不合法"),
+UNKNOWN_ERROR(00002,"未知错误"),
+//10000开头为用户信息相关错误定义
+USER_NOT_EXIST(10001,"用户不存在")
+;
+```
+
+但是int 类型的00002传到前端转成Json格式就变成了2
+
+#### BaseController
+
+这里Controller层的代码如下
+
+```java
+package com.seckillproject.controller;
+
+import com.seckillproject.controller.viewobject.UserVO;
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.error.EmBusinessError;
+import com.seckillproject.response.CommonReturnType;
+import com.seckillproject.service.UserService;
+import com.seckillproject.service.model.UserModel;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+
+@Controller("user")
+@RequestMapping("/user")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @RequestMapping("/get")
+    @ResponseBody
+    public CommonReturnType getUser(@RequestParam(name="id") Integer id) throws BusinessException {
+        //调用service服务器获取对应id的用户对象并返回给前端
+        UserModel userModel = userService.getUserById(id);
+        //若获取的用户信息不存在
+        if(userModel == null){
+            throw new BusinessException(EmBusinessError.USER_NOT_EXIST);
+        }
+
+        //将核心领域模型用户对象转化为可提供UI使用的viewObject
+        UserVO userVO =  convertFromUserModel(userModel);
+        //返回通用对象
+        return CommonReturnType.create(userVO);
+    }
+
+    private UserVO convertFromUserModel(UserModel userModel) {
+        if(userModel == null) {
+            return null;
+        }
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(userModel,userVO);
+        return userVO;
+    }
+
+    //定义exceptionhandler解决未被controller层吸收的exception
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object handlerException(HttpServletRequest httpServletRequest,Exception exception) {
+        Map<String,Object> responseData = new HashMap<>();
+        if(exception instanceof BusinessException) {
+            BusinessException businessException = (BusinessException)exception;
+            responseData.put("errCode",businessException.getErrCode());
+            responseData.put("errMsg",businessException.getErrMsg());
+        } else {
+            responseData.put("errCode",EmBusinessError.UNKNOWN_ERROR.getErrCode());
+            responseData.put("errMsg",EmBusinessError.UNKNOWN_ERROR.getErrMsg());
+        }
+        return CommonReturnType.create(responseData,"fail");
+    }
+}
+```
+
+在这里异常处理类定义在了UserController里，但其实handlerException是所有controller公用的逻辑
+
+所以抽象一层BaseController层，将异常处理放在基类里
+
+```java
+package com.seckillproject.controller;
+
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.error.EmBusinessError;
+import com.seckillproject.response.CommonReturnType;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+
+public class BaseController {
+
+    //定义exceptionhandler解决未被controller层吸收的exception
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.OK)
+    @ResponseBody
+    public Object handlerException(HttpServletRequest httpServletRequest, Exception exception) {
+        Map<String,Object> responseData = new HashMap<>();
+        if(exception instanceof BusinessException) {
+            BusinessException businessException = (BusinessException)exception;
+            responseData.put("errCode",businessException.getErrCode());
+            responseData.put("errMsg",businessException.getErrMsg());
+        } else {
+            responseData.put("errCode", EmBusinessError.UNKNOWN_ERROR.getErrCode());
+            responseData.put("errMsg",EmBusinessError.UNKNOWN_ERROR.getErrMsg());
+        }
+        return CommonReturnType.create(responseData,"fail");
+    }
+}
+```
+
+同时让UserController去继承BaseController
+
+这样UserController抛出的异常就能由BaseController内的handlerException处理，因为handlerException方法也得到了继承
+
+运行测试，http://localhost:8080/user/get?id=2
+
+![13](seckill项目/13.png)
+
+可以看到异常被正确的处理了，注意这里errCode已经改成了最新的
+
+### 总结
+
+定义了CommonReturnType，能够用对应的String status和Object data返回所有的Json序列化的一个固定对象，供前端解析使用，摒弃了HttpStatusCode+内嵌Tomcat自带的ErrorPage页的方式处理异常
+
+定义了一个Common的BussinessError的方式，去统一管理我们所需要的错误码
+
+在BaseController基类里，定义了一个通用的exceptionhandler解决未被controller层吸收的exception。并且使用errorCode+errorMsg的统一定义方式吃掉了所有内部未知的异常
+
+## 基础能力总结
+
+到目前位置完成了SpringBoot+Mybatis+SpringMVC框架+常态的错误定义等基础能力
+
+# 模型能力管理
+
+模型管理就是去完成领域模型，会有用户模型商品模型下单模型
+
+## 用户模型管理
+
+### otp短信获取
+
+#### 用户获取otp短信接口
+
+在UserController中加入getOtp方法作为用户获取otp短信的接口
+
+```java
+@Autowired
+private HttpServletRequest httpServletRequest;
+//用户获取otp短信接口
+@RequestMapping("/getotp")
+@ResponseBody
+public CommonReturnType getOtp(@RequestParam(name="telphone") String telphone) {
+    //需要按照一定规则生成OTP验证码
+    Random random = new Random();
+    int randomInt = random.nextInt(99999);
+    randomInt += 10000;
+    String otpCode = String.valueOf(randomInt);
+
+    //将OTP验证码同对应用户的手机号关联，使用httpsession的方式绑定他的手机号与OTPCODE
+    httpServletRequest.getSession().setAttribute(telphone,otpCode);
+
+    //将OTP验证码通过短信通道发送给用户，这里省略
+    System.out.println("telphone=" + telphone + "otpCode=" + otpCode);
+    return CommonReturnType.create(null);
+}
+```
+
+将OTP验证码同对应用户手机号关联最好使用key-value对的形式，企业采用Redis的去存储，因为Redis天然支持key-value对的形式，可以设置生存时间，也可以反复点击覆盖，但是这里没讲到Redis，先用httpsession绑定手机号和otpcode
+
+HttpServletRequest是通过容器注入的，HttpServletRequest是一个单例的模式，怎么能支持多个用户的并发访问？
+
+通过Bean包装的HttpServletRequest内部拥有ThreadLocalMap，能让不同用户在自己的线程中处理自己的request，并且有ThreadLocal清除机制
+
+#### otp注册用户
+
+接下来做用户注册的界面，下载的Static静态资源包里的内容是基于BootStrap的Metronic框架模板
+
+![14](seckill项目/14.png)
+
+##### getotp.html
+
+新建一个getotp.html作为获取otp短信界面
+
+```html
+<html>
+<head>
+<meta charset="UTF-8">
+<script src = "static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+</head>
+
+<body>
+	<div>
+		<h3>获取otp信息</h3>
+		
+		<div>
+			<label>手机号</label>
+			<div>
+				<input type="text" placeholder="手机号" name="telphone" id="telphone"/>
+			</div>
+		</div>
+		
+		<div>
+			<button id= "getotp" type="submit">
+			获取otp短信
+			</button>
+		</div>
+	</div>
+</body>
+
+
+<script>
+    jQuery(document).ready(function () {
+        $("#getotp").on("click",function () {
+            var telphone = $("#telphone").val();
+            if (telphone == null || telphone === "") {
+                alert("手机号不能为空");
+                return false;
+            }
+            $.ajax({
+                type:"POST",
+                contentType:"application/x-www-form-urlencoded",
+                url:"http://localhost:8080/user/getotp",
+                data:{
+                    "telphone":telphone,
+                },
+                success:function (data) {
+                    if (data.status === "success") {
+                        alert("短信发送成功，请查收");
+                    }else {
+                        alert("短信发送失败，原因是"+data.data.errMsg);
+                    }
+                },
+                error:function (data) {
+                    alert("短信发送失败"+data.responseText);
+                }
+            })
+        });
+    });
+
+</script>
+</html>
+```
+
+这里ajax的type、contentType都对应下面的设置
+
+在UserController的getOtp上增加method = {RequestMethod.POST}，让getotp方法必须映射到http的POST请求才处理，comsumes对应后端需要消费的Content Type的名字，指明为传统的HTTP的url form encoded方式"application/x-www-form-urlencoded"
+
+```java
+//用户获取otp短信接口
+@RequestMapping(value = "/getotp",method = {RequestMethod.POST},consumes = {CONTENT_TYPE_FORMED})
+@ResponseBody
+public CommonReturnType getOtp(@RequestParam(name="telphone") String telphone) {
+    //需要按照一定规则生成OTP验证码
+    Random random = new Random();
+    int randomInt = random.nextInt(99999);
+    randomInt += 10000;
+    String otpCode = String.valueOf(randomInt);
+
+    //将OTP验证码同对应用户的手机号关联，使用httpsession的方式绑定他的手机号与OTPCODE
+    httpServletRequest.getSession().setAttribute(telphone,otpCode);
+
+    //将OTP验证码通过短信通道发送给用户，这里省略
+    System.out.println("telphone=" + telphone + "otpCode=" + otpCode);
+    return CommonReturnType.create(null);
+}
+```
+
+这里将它抽象出来在baseController中定义CONTENT_TYPE_FORMED
+
+```java
+public class BaseController {
+    public static final String CONTENT_TYPE_FORMED = "application/x-www-form-urlencoded";
+```
+
+##### 遇到的问题
+
+启动项目测试，输入手机号发现报错Access to XMLHttpRequest at 'http://localhost:8080/user/getotp' from origin 'null' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+
+![15](seckill项目/15.png)
+
+这是一个跨域请求错误，ajax启动于getotp.html，对应的域是本地文件。请求的服务器是localhost域名，虽然请求能够到达服务端并返回，但是ajax请求回调认定这种跨域回调是不安全的，因此会报错，并且走不到ajax的success block里面
+
+**解决方法**：在Spring Boot里有专门解决办法，那就是让reponse时刻返回Access-Control-Allow-Origin这个header为所有的域，也就是*号即可
+
+Spring Boot有专门的注解：**@CrossOrigin**
+
+```java
+//用户获取otp短信接口
+@RequestMapping(value = "/getotp",method = {RequestMethod.POST},consumes = {CONTENT_TYPE_FORMED})
+@ResponseBody
+@CrossOrigin
+public CommonReturnType getOtp(@RequestParam(name="telphone") String telphone) {
+    //需要按照一定规则生成OTP验证码
+    Random random = new Random();
+    int randomInt = random.nextInt(99999);
+    randomInt += 10000;
+    String otpCode = String.valueOf(randomInt);
+
+    //将OTP验证码同对应用户的手机号关联，使用httpsession的方式绑定他的手机号与OTPCODE
+    httpServletRequest.getSession().setAttribute(telphone,otpCode);
+
+    //将OTP验证码通过短信通道发送给用户，这里省略
+    System.out.println("telphone=" + telphone + "otpCode=" + otpCode);
+    return CommonReturnType.create(null);
+}
+```
+
+通过这个注解，可以完成Spring Boot对应返回对应Web请求当中加上跨域Allow Header
+
+再次测试，可以发现，返回的Response Header里Access-Control-Allow-Origin=*，代表允许所有的域
+
+![16](seckill项目/16.png)
+
+##### getotp界面美化
+
+添加BootStrap的样式
+
+```html
+<html>
+<head>
+<meta charset="UTF-8">
+
+<link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+<link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css">
+<link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css">
+<script src = "static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+</head>
+
+<body class="login">
+	<div class="content">
+		<h3 class=>获取otp信息</h3>
+		
+		<div class="form-group">
+			<label class="control-label">手机号</label>
+			<div>
+				<input class="form-control" type="text" placeholder="手机号" name="telphone" id="telphone"/>
+			</div>
+		</div>
+		
+		<div class="from-actions">
+			<button class="btn blue" id= "getotp" type="submit">
+			获取otp短信
+			</button>
+		</div>
+	</div>
+</body>
+
+
+<script>
+    jQuery(document).ready(function () {
+        $("#getotp").on("click",function () {
+            var telphone = $("#telphone").val();
+            if (telphone == null || telphone === "") {
+                alert("手机号不能为空");
+                return false;
+            }
+            $.ajax({
+                type:"POST",
+                contentType:"application/x-www-form-urlencoded",
+                url:"http://localhost:8080/user/getotp",
+                data:{
+                    "telphone":telphone,
+                },
+                success:function (data) {
+                    if (data.status === "success") {
+                        alert("短信发送成功，请查收");
+                    }else {
+                        alert("短信发送失败，原因是"+data.data.errMsg);
+                    }
+                },
+                error:function (data) {
+                    alert("短信发送失败"+data.responseText);
+                }
+            })
+        });
+    });
+
+</script>
+</html>
+```
+
+#### 用户手机登录
