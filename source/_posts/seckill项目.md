@@ -2238,3 +2238,584 @@ javax.validation.UnexpectedTypeException: HV000030: No validator could be found 
 再次测试
 
 ![27](seckill项目/27.png)
+
+## 商品模型管理
+
+### 商品创建
+
+设计数据库之前应该先设计领域模型，不然就像之前一样，把用户的密码字段也放在了用户主表中
+
+首先创建ItemModle
+
+```java
+package com.seckillproject.service.model;
+
+import java.math.BigDecimal;
+
+public class ItemModel {
+    private Integer id;
+
+    //商品名
+    private String title;
+    //商品价格
+    private BigDecimal price;
+
+    //商品库存
+    private Integer stock;
+
+    //商品描述
+    private String description;
+
+    //商品销量
+    private Integer sales;
+
+    //商品描述图片URL
+    private String imgURL;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getSales() {
+        return sales;
+    }
+
+    public void setSales(Integer sales) {
+        this.sales = sales;
+    }
+
+    public String getImgURL() {
+        return imgURL;
+    }
+
+    public void setImgURL(String imgURL) {
+        this.imgURL = imgURL;
+    }
+}
+```
+
+#### 数据库层
+
+然后思考数据库是否和模型一模一样，其实不一样
+
+stock库存字段确实和商品是一对一的关系，但是考虑到商品库存和交易流水相关，每次对商品表的操作就是对库存表的操作，因此最好stock拆到另外的表中
+
+sales销量字段也是这个问题，销量对应商品模型当中是交易行为发生之后产生的一个累加，在这个项目里暂且用于展示，放在这个表中，当用户发生交易行为时，通过异步的方式给销量字段加1，而不会影响下单主链路，因此暂时放在这里
+
+item数据表内容如下
+
+![29](seckill项目/32.png)
+
+接着去创建库存表
+
+![30](seckill项目/30.png)
+
+#### MyBatis自动生成插件
+
+接下来用mybatis-generator去自动生成
+
+这里要将pom文件里mybatis自动生成器的自动覆盖置为false，不然新生成的就把之前的user覆盖掉了
+
+在mybatis-generator.xml里新增生成对应表和类名
+
+```xml
+<table tableName="item" domainObjectName="ItemDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+<table tableName="item_stock" domainObjectName="ItemStockDO" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+```
+
+可以看到对应的文件已经生成了
+
+![31](seckill项目/31.png)
+
+在ItemDOMapper.xml中，找到insert和insertSelective方法，依然要为它们指定主键并且自增的方式
+
+![33](seckill项目/33.png)
+
+同样的道理，去ItemStockDOMapper.xml，找到insert和insertSelective方法，为它们指定主键并且自增的方式
+
+**需要注意ItemModel里price是BigDecimal类型的，而数据库里是Double类型的，ItemDO是Double类型的，为什么要用BigDecimal？**
+
+**因为Double类型Json传到前端会有精度问题，可能1.9会变成1.99999**
+
+#### Service层
+
+现在完成了一套item模型的设计，再去创建ItemSerivce
+
+```java
+package com.seckillproject.service;
+
+import com.seckillproject.service.model.ItemModel;
+
+import java.util.List;
+
+public interface ItemService {
+    //创建商品
+    ItemModel createItem(ItemModel itemModel);
+    //商品列表浏览
+    List<ItemModel> listItem();
+    //商品详情浏览
+    ItemModel getItemModle(Integer id);
+}
+```
+
+在ItemServiceImpl中实现
+
+```java
+package com.seckillproject.service.impl;
+
+import com.seckillproject.dao.ItemDOMapper;
+import com.seckillproject.dao.ItemStockDOMapper;
+import com.seckillproject.dataobject.ItemDO;
+import com.seckillproject.dataobject.ItemStockDO;
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.error.EmBusinessError;
+import com.seckillproject.service.ItemService;
+import com.seckillproject.service.model.ItemModel;
+import com.seckillproject.validator.ValidationResult;
+import com.seckillproject.validator.ValidatorImpl;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+public class ItemServiceImpl implements ItemService {
+
+    @Autowired
+    private ValidatorImpl validator;
+    @Autowired
+    private ItemDOMapper itemDOMapper;
+    @Autowired
+    private ItemStockDOMapper itemStockDOMapper;
+    private ItemStockDO convertItemStockDOFromItemModel(ItemModel itemModel) {
+        if(itemModel == null) {
+            return null;
+        }
+        ItemStockDO itemStockDO = new ItemStockDO();
+        //这里不会copy类型不一样的price字段
+        itemStockDO.setItemId(itemModel.getId());
+        itemStockDO.setStock(itemModel.getStock());
+        return itemStockDO;
+    }
+    private ItemDO convertItemDOFromItemModel(ItemModel itemModel) {
+        if(itemModel == null) {
+            return null;
+        }
+        ItemDO itemDO = new ItemDO();
+        //这里不会copy类型不一样的price字段
+        BeanUtils.copyProperties(itemModel,itemDO);
+        itemDO.setPrice(itemModel.getPrice().doubleValue());
+        return itemDO;
+    }
+    @Override
+    @Transactional
+    public ItemModel createItem(ItemModel itemModel) throws BusinessException {
+        //校验入参
+        ValidationResult result = validator.validate(itemModel);
+        if(result.isHasErrors()) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,result.getErrMsg());
+        }
+
+        //转化ItemModel到dataobject
+        ItemDO itemDO = this.convertItemDOFromItemModel(itemModel);
+
+        //写入数据库
+        itemDOMapper.insertSelective(itemDO);
+        itemModel.setId(itemDO.getId());
+
+        ItemStockDO itemStockDO = this.convertItemStockDOFromItemModel(itemModel);
+        itemStockDOMapper.insertSelective(itemStockDO);
+        //返回创建完成的对象
+        return this.getItemById(itemModel.getId());
+    }
+
+    @Override
+    public List<ItemModel> listItem() {
+        return null;
+    }
+
+    @Override
+    public ItemModel getItemById(Integer id) {
+        ItemDO itemDO = itemDOMapper.selectByPrimaryKey(id);
+        if(itemDO == null) {
+            return null;
+        }
+        //操作获得库存数量 
+    }
+}
+```
+
+接着要去getItemById中获取库存数量，需要在ItemStockDOMapper.xml中增加通过item_id查stock的SQL语句
+
+```xml
+<select id="selectByItemId" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+<!--
+  WARNING - @mbg.generated
+  This element is automatically generated by MyBatis Generator, do not modify.
+  This element was generated on Sun Aug 09 11:17:17 CST 2020.
+-->
+select
+<include refid="Base_Column_List" />
+from item_stock
+where item_id = #{itemId,jdbcType=INTEGER}
+</select>
+```
+
+在ItemStockDOMapper中增加映射语句
+
+```java
+ItemStockDO selectByItemId(Integer itemId);
+```
+
+完善getItemById方法
+
+```java
+@Override
+public ItemModel getItemById(Integer id) {
+    ItemDO itemDO = itemDOMapper.selectByPrimaryKey(id);
+    if(itemDO == null) {
+        return null;
+    }
+    //操作获得库存数量
+    ItemStockDO itemStockDO = itemStockDOMapper.selectByItemId(itemDO.getId());
+
+    //将dataobject转化成model领域模型
+    ItemModel itemModel = convertModleFromDataObject(itemDO,itemStockDO);
+    return itemModel;
+}
+private ItemModel convertModleFromDataObject(ItemDO itemDo,ItemStockDO itemStockDO) {
+    ItemModel itemModel = new ItemModel();
+    BeanUtils.copyProperties(itemDo,itemModel);
+
+    itemModel.setPrice(new BigDecimal(itemDo.getPrice()));
+    itemModel.setStock(itemStockDO.getStock());
+    return itemModel;
+}
+```
+
+#### Controller层
+
+接下来是Controller层，创建ItemController和用于前端展示的ItemVO
+
+将ItemModel的字段复制过来，然后看是否都可以展示，结果是都可以展示给前端
+
+将UserController的下面代码复制过去，因为item同样要处理跨域的请求
+
+```java
+@RequestMapping("/item")
+@CrossOrigin(allowCredentials = "true",allowedHeaders = "*")
+```
+
+然后写一个创建商品方法，参数没有sales，因为销量和创建商品无关
+
+```java
+package com.seckillproject.controller;
+
+import com.seckillproject.controller.viewobject.ItemVO;
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.response.CommonReturnType;
+import com.seckillproject.service.ItemService;
+import com.seckillproject.service.model.ItemModel;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.math.BigDecimal;
+
+@Controller
+@RequestMapping("/item")
+@CrossOrigin(allowCredentials = "true",allowedHeaders = "*")
+public class ItemController extends BaseController{
+    @Autowired
+    ItemService itemService;
+    //创建商品的controller
+    public CommonReturnType createItem(@RequestParam(name = "title") String title,
+                                       @RequestParam(name = "description") String description,
+                                       @RequestParam(name = "price") BigDecimal price,
+                                       @RequestParam(name = "stock") Integer stock,
+                                       @RequestParam(name = "imgUrl") String imgUrl) throws BusinessException {
+        //封装service请求来创建商品
+        ItemModel itemModel = new ItemModel();
+        itemModel.setTitle(title);
+        itemModel.setPrice(price);
+        itemModel.setStock(stock);
+        itemModel.setDescription(description);
+        itemModel.setImgURL(imgUrl);
+
+        ItemModel itemModelForReturn = itemService.createItem(itemModel);
+        ItemVO itemVO = convertVOFromModel(itemModelForReturn);
+        return CommonReturnType.create(itemVO);
+
+    }
+    private ItemVO convertVOFromModel(ItemModel itemModel) {
+        if(itemModel == null) {
+            return null;
+        }
+        ItemVO itemVO = new ItemVO();
+        BeanUtils.copyProperties(itemModel,itemVO);
+        return itemVO;
+    }
+}
+```
+
+#### createitem.html
+
+仿照以前的html创建createitem.html
+
+```html
+<html>
+<head>
+<meta charset="utf-8">
+<link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+<script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+
+</head>
+
+<body class="login">
+  <div class="content">
+    <h3 class="form-title">创建商品</h3>
+    <div class="form-group">
+      <label class="control-label">商品名</label>
+      <div>
+        <input class="form-control" type="text" placeholder="商品名" name="title" id="title"/>
+      </div>
+    </div>
+     <div class="form-group">
+      <label class="control-label">商品描述</label>
+      <div>
+        <input class="form-control" type="text" placeholder="商品描述" name="description" id="description"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品价格</label>
+      <div>
+        <input class="form-control" type="text" placeholder="商品价格" name="price" id="price"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品库存</label>
+      <div>
+        <input class="form-control" type="text" placeholder="商品库存" name="stock" id="stock"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品图片</label>
+      <div>
+        <input class="form-control" type="text" placeholder="商品图片" name="imgUrl" id="imgUrl"/>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn blue"type="submit" id="create">
+        提交创建
+      </button>
+    </div>
+  </div>
+</body>
+
+<script>
+  jQuery(document).ready(function() {
+    $("#create").on("click", function() {
+      var title = $("#title").val();
+      var description = $("#description").val();
+      var price = $("#price").val();
+      var stock = $("#stock").val();
+      var imgUrl = $("#imgUrl").val();
+      if (title == null || title == "") {
+        alert("商品标题不能为空!");
+        return false;
+      }
+      if (description == null || description == "") {
+        alert("商品描述不能为空!");
+        return false;
+      }
+      if (price == null || price == "") {
+        alert("商品价格不能为空!");
+        return false;
+      }
+      if (stock == null || stock == "") {
+        alert("商品库存不能为空!");
+        return false;
+      }
+      if (imgUrl == null || imgUrl == "") {
+        alert("商品图片不能为空!");
+        return false;
+      }
+      $.ajax({
+        type: "POST",
+        contentType: "application/x-www-form-urlencoded",
+        url:"http://localhost:8080/item/create",
+        data:{
+          "title":title,
+          "description":description,
+          "price":price,
+          "stock":stock,
+          "imgUrl":imgUrl,
+        },
+        xhrFields: {withCredentials: true},
+        success:function(data) {
+          if (data.status == "success") {
+            alert("创建成功!");
+          } else {
+            alert("创建失败，原因为" + data.data.errMsg);
+          }
+        },
+        error:function(data) {
+          alert("创建失败，原因为" + data.responseText);
+        }
+      });
+      return false;
+    });
+  });
+</script>
+
+</html>
+```
+
+##### 遇到的问题
+
+之后进行测试
+
+```java
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: No serializer found for class com.seckillproject.controller.viewobject.ItemVO and no properties discovered to create BeanSerializer (to avoid exception, disable SerializationFeature.FAIL_ON_EMPTY_BEANS) (through reference chain: com.seckillproject.response.CommonReturnType["data"])
+	at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
+```
+
+原因是将ItemVO序列化返回给前端的时候缺少了一些东西
+
+解决方法是ItemVO加上get set方法
+
+再次测试
+
+![34](seckill项目/34.png)
+
+### 商品详情页
+
+#### Controller层
+
+在ItemController种创建商品详情页浏览接口
+
+```java
+//商品详情页浏览
+@RequestMapping(value = "/get",method = {RequestMethod.GET},consumes = {CONTENT_TYPE_FORMED})
+@ResponseBody
+public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
+    ItemModel itemModel = itemService.getItemById(id);
+
+    ItemVO itemVO = convertVOFromModel(itemModel);
+    return CommonReturnType.create(itemVO);
+}
+```
+
+### 商品列表页
+
+#### Dao层
+
+先在ItemDOMapper.xml中添加SQL语句
+
+```xml
+<select id="listItem" resultMap="BaseResultMap">
+<!--
+  WARNING - @mbg.generated
+  This element is automatically generated by MyBatis Generator, do not modify.
+  This element was generated on Sun Aug 09 11:17:17 CST 2020.
+-->
+select
+<include refid="Base_Column_List" />
+from item order by sales DESC
+</select>
+```
+
+这里返回所有的商品列表，并且按销量降序
+
+在ItemDOMapper中加入
+
+```java
+List<ItemDO> listItem();
+```
+
+#### Service层
+
+接着去ItemSericeImpl中实现它
+
+```java
+@Override
+public List<ItemModel> listItem() {
+    List<ItemDO> itemDOList = itemDOMapper.listItem();
+    List<ItemModel> itemModelList = itemDOList.stream().map(itemDO -> {
+        ItemStockDO itemStockDO = itemStockDOMapper.selectByItemId(itemDO.getId());
+        ItemModel itemModel = this.convertModleFromDataObject(itemDO, itemStockDO);
+        return itemModel;
+    }).collect(Collectors.toList());
+    return itemModelList;
+}
+```
+
+这里使用Java8的stream，将List里的每个ItemDO都map成ItemModel，最后使用collect方法转出List对象
+
+#### Controller层
+
+接着去ItemController，同样的方法转出itemVOList
+
+```java
+//商品列表页面浏览
+@RequestMapping(value = "/list",method = {RequestMethod.GET},consumes = {CONTENT_TYPE_FORMED})
+@ResponseBody
+public CommonReturnType listItem() {
+    List<ItemModel> itemModelList = itemService.listItem();
+
+    //使用stream api将list内的itemModel转化为ItemVO
+    List<ItemVO> itemVOList = itemModelList.stream().map(itemModel -> {
+        ItemVO itemVO = this.convertVOFromModel(itemModel);
+        return itemVO;
+    }).collect(Collectors.toList());
+    return CommonReturnType.create(itemVOList);
+}
+```
+
+这里将consumes = {CONTENT_TYPE_FORMED}去掉，然后测试
+
+![35](seckill项目/35.png)
+
