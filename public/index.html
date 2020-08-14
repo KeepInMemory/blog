@@ -150,6 +150,80 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-mvcc底层原理" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/08/14/mvcc%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/">mvcc底层原理</a>
+    </h1>
+  
+
+        
+        <a href="/2020/08/14/mvcc%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/" class="archive-article-date">
+  	<time datetime="2020-08-14T06:50:17.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-08-14</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>MVCC主要为了提高并发的读写性能，不用加锁就能让多个事务并发读写</p>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/08/14/mvcc%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Java运行时数据区" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -171,95 +245,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <h2 id="运行时数据区结构"><a href="#运行时数据区结构" class="headerlink" title="运行时数据区结构"></a>运行时数据区结构</h2><p>文章来自<a href="https://www.bilibili.com/video/BV1kJ411g7C1" target="_blank" rel="noopener">视频课程总结</a></p>
-<p>线程私有：虚拟机栈、本地方法栈、程序计数器</p>
-<p>线程共享：堆、方法区</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/1.png" alt="1"></p>
-<p>字节码执行引擎的作用：</p>
-<p>1.修改程序计数器的值</p>
-<p>2.去方法区中执行字节码</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//示例代码</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Math</span> </span>&#123;</span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> initData = <span class="number">666</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> User user = <span class="keyword">new</span> User();</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> a = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">int</span> b = <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">int</span> c = (a + b) * <span class="number">10</span>;</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Math math = <span class="keyword">new</span> Math();</span><br><span class="line">        math.compute();</span><br><span class="line">        System.out.println(<span class="string">"test"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>通过Javap -c 命令反汇编，同时将内容放到Math.text中</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/3.png" alt="3"></p>
-<p>反汇编内容如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">Compiled from <span class="string">"Math.java"</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">com</span>.<span class="title">company</span>.<span class="title">Math</span> </span>&#123;</span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> initData;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">static</span> com.company.User user;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span> com.company.Math();</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: aload_0</span><br><span class="line">       1: invokespecial #1                  // Method java/lang/Object."&lt;init&gt;":()V</span><br><span class="line">       <span class="number">4</span>: <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">()</span></span>;</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: iconst_1</span><br><span class="line">       <span class="number">1</span>: istore_1</span><br><span class="line">       <span class="number">2</span>: iconst_2</span><br><span class="line">       <span class="number">3</span>: istore_2</span><br><span class="line">       <span class="number">4</span>: iload_1</span><br><span class="line">       <span class="number">5</span>: iload_2</span><br><span class="line">       <span class="number">6</span>: iadd</span><br><span class="line">       <span class="number">7</span>: bipush        <span class="number">10</span></span><br><span class="line">       <span class="number">9</span>: imul</span><br><span class="line">      <span class="number">10</span>: istore_3</span><br><span class="line">      <span class="number">11</span>: iload_3</span><br><span class="line">      <span class="number">12</span>: ireturn</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(java.lang.String[])</span></span>;</span><br><span class="line">    Code:</span><br><span class="line">       0: new           #2                  // class com/company/Math</span><br><span class="line">       <span class="number">3</span>: dup</span><br><span class="line">       4: invokespecial #3                  // Method "&lt;init&gt;":()V</span><br><span class="line">       <span class="number">7</span>: astore_1</span><br><span class="line">       <span class="number">8</span>: aload_1</span><br><span class="line">       9: invokevirtual #4                  // Method compute:()I</span><br><span class="line">      <span class="number">12</span>: pop</span><br><span class="line">      13: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">      16: ldc           #6                  // String test</span><br><span class="line">      18: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">      <span class="number">21</span>: <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> &#123;&#125;;</span><br><span class="line">    Code:</span><br><span class="line">       <span class="number">0</span>: sipush        <span class="number">666</span></span><br><span class="line">       3: putstatic     #8                  // Field initData:I</span><br><span class="line">       6: new           #9                  // class com/company/User</span><br><span class="line">       <span class="number">9</span>: dup</span><br><span class="line">      10: invokespecial #10                 // Method com/company/User."&lt;init&gt;":()V</span><br><span class="line">      13: putstatic     #11                 // Field user:Lcom/company/User;</span><br><span class="line">      <span class="number">16</span>: <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h2><h3 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h3><p><strong>JVM会为每个线程都分配一个栈</strong>，利用栈的先进后出特性，用来做方法的调用</p>
-<p>根据上面的示例代码，有一个主线程mian，那么会给它分配一个栈，主线程执行一个方法就在栈里面入栈一个栈帧，main线程先往栈中放一个main方法的栈帧，在main方法中执行的时候又执行到了compute方法，就继续入栈compute的栈帧，转到compute方法去执行</p>
-<p>compute方法运行完毕的时候，compute的栈帧会出栈，接着main栈帧的内容接着执行</p>
-<p><strong>栈帧里有局部变量表、操作数栈、动态链接、方法出口</strong></p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/2.png" alt="2"></p>
-<h4 id="局部变量表、操作数栈"><a href="#局部变量表、操作数栈" class="headerlink" title="局部变量表、操作数栈"></a>局部变量表、操作数栈</h4><p>观察compute的汇编指令，根据Java汇编手册可以翻译出来</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">()</span></span>;</span><br><span class="line">Code:<span class="comment">//注释里的1、2均代表下标</span></span><br><span class="line">   <span class="number">0</span>: iconst_1<span class="comment">//将int类型常量1压入操作数栈                         int a = 1;</span></span><br><span class="line">   <span class="number">1</span>: istore_1<span class="comment">//将int类型值常量出操作数栈，存入局部变量1             int a = 1;</span></span><br><span class="line">   <span class="number">2</span>: iconst_2<span class="comment">//将int类型常量2压入操作数栈        		            int b = 2;</span></span><br><span class="line">   <span class="number">3</span>: istore_2<span class="comment">//将int类型值常量出操作数栈，存入局部变量2             int b = 2;</span></span><br><span class="line">   <span class="number">4</span>: iload_1<span class="comment">//从局部变量表1中装载int类型放到操作数栈                int c = (a + b) * 10;</span></span><br><span class="line">   <span class="number">5</span>: iload_2<span class="comment">//从局部变量表2中装载int类型放到操作数栈                int c = (a + b) * 10;</span></span><br><span class="line">   <span class="number">6</span>: iadd<span class="comment">//执行int类型的加法,从操作数栈弹出两个数,相加后放入操作数栈   int c = (a + b) * 10;</span></span><br><span class="line">   <span class="number">7</span>: bipush        <span class="number">10</span><span class="comment">//把10入栈    							 int c = (a + b) * 10;</span></span><br><span class="line">   <span class="number">9</span>: imul<span class="comment">//执行int类型的乘法,从操作数栈弹出两个数,相加后放入操作数栈   int c = (a + b) * 10;</span></span><br><span class="line">  <span class="number">10</span>: istore_3<span class="comment">//将int类型值常量出操作数栈，存入局部变量3             int c = (a + b) * 10;</span></span><br><span class="line">  <span class="number">11</span>: iload_3<span class="comment">//从局部变量表3中装载int类型放到操作数栈                int c = (a + b) * 10;</span></span><br><span class="line">  <span class="number">12</span>: ireturn<span class="comment">//从操作数栈出栈,返回给上一个栈帧                      return c;</span></span><br></pre></td></tr></table></figure>
-
-<p>执行第0行，会将常量1（值为1）放到<strong>操作数栈</strong>暂存起来</p>
-<p>执行第1行，在<strong>局部变量表</strong>中分配1号的空间用来代表a（第0号位置放的是this），操作数栈出栈，将常量1放到局部变量表1号位置</p>
-<p>执行完 1: istore_1，Java虚拟机栈中的内容如下，在局部变量表中</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/4.png" alt="4"></p>
-<p>当执行到   4: iload_的时候，内部是这样的</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/5.png" alt="5"></p>
-<p>执行完第五行，操作数栈入栈了两个局部变量表的数，这里程序计数器应该为6</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/6.png" alt="6"></p>
-<p>执行到第12行，把操作数栈中的30出栈返回给main方法，这里程序计数器应该为12</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/7.png" alt="7"></p>
-<p>main方法栈帧的局部变量表中有一个Math对象，它和分配到堆里面的Math对象的联系就是局部变量表中的Math里放的是它在堆里面的地址</p>
-<p><strong>堆和栈的关系</strong>：栈里面有很多指针指向堆里面分配的对象</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Math math = <span class="keyword">new</span> Math();</span><br><span class="line">    math.compute();</span><br><span class="line">    System.out.println(<span class="string">"test"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/8.png" alt="8"></p>
-<h4 id="动态链接"><a href="#动态链接" class="headerlink" title="动态链接"></a>动态链接</h4><p><strong>将符号引用在程序运行过程中转变为直接引用</strong></p>
-<p>听起来比较抽象，在示例代码中举个例子</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Math math = <span class="keyword">new</span> Math();</span><br><span class="line">    math.compute();</span><br><span class="line">    System.out.println(<span class="string">"test"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里new了一个math对象，math对象的对象头中类型指针指向了方法区的Math类的类元信息，类元信息有各个方法的名称和字节码</p>
-<p>运行到math.compute()的时候，需要去找到compute方法的字节指令码去执行</p>
-<p>math.compute()仅仅是个静态符号，要去对象头指向的类元信息里去找方法的字节码地址</p>
-<p>动态链接的意思就是在程序运行过程中将一系列的静态符号根据对象的对象头找到方法对应的指令码入口地址，把方法入口的地址存到栈帧的动态链接中</p>
-<p>比如在程序运行过程中main栈帧的动态链接里有compute()方法的入口地址（直接引用）</p>
-<h4 id="方法出口"><a href="#方法出口" class="headerlink" title="方法出口"></a>方法出口</h4><p>compute方法执行完要return c，return给谁，返回到哪里接着执行？要看方法出口</p>
-<p>示例里面compute方法的栈帧里的方法出口就记录了math.compute()的行号，就是程序计数器的值</p>
-<p>返回的时候带着出栈的操作数，返回到main方法栈帧和compute方法的方法出口记录的行号</p>
-<h2 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h2><p>记录了正在执行的虚拟机字节码指令的地址</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">()</span></span>;</span><br><span class="line">Code:</span><br><span class="line">   <span class="number">0</span>: iconst_1<span class="comment">//将int类型常量1压入操作数栈 //先读到a=1的右边</span></span><br><span class="line">   <span class="number">1</span>: istore_1<span class="comment">//将int类型值常量1出栈（操作数栈），存入局部变量1（1是第1号位置代表a）//a=1的左边</span></span><br><span class="line">   <span class="number">2</span>: iconst_2<span class="comment">//将int类型常量2压入操作数栈</span></span><br><span class="line">   <span class="number">3</span>: istore_2<span class="comment">//将int类型值存入局部变量2</span></span><br><span class="line">   <span class="number">4</span>: iload_1<span class="comment">//</span></span><br><span class="line">   <span class="number">5</span>: iload_2</span><br><span class="line">   <span class="number">6</span>: iadd</span><br><span class="line">   <span class="number">7</span>: bipush        <span class="number">10</span></span><br><span class="line">   <span class="number">9</span>: imul</span><br><span class="line">  <span class="number">10</span>: istore_3</span><br><span class="line">  <span class="number">11</span>: iload_3</span><br><span class="line">  <span class="number">12</span>: ireturn</span><br></pre></td></tr></table></figure>
-
-<p>比如现在执行到了4: iload_1，那么程序计数器就存放4</p>
-<h2 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h2><p>Math<strong>.class文件通过类装载子系统，装载到方法区中</strong></p>
-<p>JDK1.8之前是永久代的实现，JDK1.8改成了元空间的实现</p>
-<p>具体的演进看这个<a href="https://blog.csdn.net/alex6586/article/details/107757796" target="_blank" rel="noopener">博文</a></p>
-<p>class文件里有常量池Constant Pool，用于存放各种编译器生成的字面量、符号引用，<strong>常量池经过类加载将存放到方法区的运行时常量池</strong></p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/13.png" alt="13"></p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/12.png" alt="12"></p>
-<p>运行时常量池比Class文件常量池具有动态性，System.out.println在Class文件常量池中是System字面量、out字面量、println字面量，而在运行时常量池中就变成了真实的地址</p>
-<p><strong>内部存放运行时常量池+类元信息</strong></p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/14.png" alt="14"></p>
-<p><strong>String常量池是运行时常量池的一部分，JDK7把String常量池+静态变量从方法区移到了堆里，JDK8把永久代方法区改成了元空间</strong></p>
-<p>类元信息包括了类全限定名、修饰符；字段名称、修饰符；方法名称、修饰符、返回值等等</p>
-<p>示例中Math类有两个静态变量</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> initData = <span class="number">666</span>;</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> User user = <span class="keyword">new</span> User();</span><br></pre></td></tr></table></figure>
-
-<p>这两个就要放在方法区中，User实例化后放在了堆里，方法区的User和堆的User有什么联系？</p>
-<p>方法区的User是指针指向了堆里的User</p>
-<p><strong>方法区的静态变量如果是引用类型，就会指向堆里的实例</strong></p>
-<p>不仅方法区会有指针指向堆，堆里面的实例也是有指针指向方法区的</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/9.png" alt="9"></p>
-<p>每个实例对象都有一个对象头+实例数据+填充组成，而对象头又有三部分组成：MarkWord+Klass Pointer+数组长度</p>
-<p>这里的Klass Pointer就是类型指针</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Math math = <span class="keyword">new</span> Math();</span><br></pre></td></tr></table></figure>
-
-<p>当new了一个Math对象的时候，堆里的math的对象头的类型指针就会指向方法区中的Math类的类元信息</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/10.png" alt="10"></p>
-<p><strong>栈里的局部变量表的引用类型会指向堆，方法区的引用类型静态变量会指向堆</strong></p>
-<p><strong>堆里对象的对象头的类型指针会指向方法区的类元信息</strong></p>
-<h2 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h2><p>和虚拟机栈的作用一样，不过服务的是本地native方法</p>
-<h2 id="堆"><a href="#堆" class="headerlink" title="堆"></a>堆</h2><p>堆里面有年轻代、老年代</p>
-<p>年轻代又分伊甸园去、幸存者区</p>
-<p>幸存者区分From区和To区</p>
-<p><img src="/2020/08/04/Java%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA/11.png" alt="11"></p>
-<p>如果给堆分配600M，老年代占2/3 400M，年轻代占1/3 200M</p>
-<p>年轻代伊甸园区占8/10 160M，幸存者区2/10 40M</p>
-<h3 id="垃圾回收"><a href="#垃圾回收" class="headerlink" title="垃圾回收"></a>垃圾回收</h3><p>新new的对象放到Eden区，如果Eden区放满了字节码执行引擎会进行MinorGC，也叫YoungGC</p>
-<p>MinorGC会回收无引用对象</p>
-
+        
       
 
       
@@ -337,56 +323,7 @@
 <p>AQS的核心思想就是申请锁的线程CAS改变state</p>
 <p>失败后的线程需要加入到队列的尾部，一旦锁被释放了，AQS就把锁让给队首的第二个node</p>
 <p>当然在此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Head of the wait queue, lazily initialized.  Except for</span></span><br><span class="line"><span class="comment"> * initialization, it is modified only via method setHead.  Note:</span></span><br><span class="line"><span class="comment"> * If head exists, its waitStatus is guaranteed not to be</span></span><br><span class="line"><span class="comment"> * CANCELLED.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> <span class="keyword">volatile</span> Node head;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Tail of the wait queue, lazily initialized.  Modified only via</span></span><br><span class="line"><span class="comment"> * method enq to add new wait node.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">transient</span> <span class="keyword">volatile</span> Node tail;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * The synchronization state.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">int</span> state;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/2020/08/03/AQS%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/1.png" alt="1"></p>
-<h3 id="Node类"><a href="#Node类" class="headerlink" title="Node类"></a>Node类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span></span>&#123;</span><br><span class="line">    <span class="keyword">volatile</span> Node prev;</span><br><span class="line">    <span class="keyword">volatile</span> Node next;</span><br><span class="line">    <span class="keyword">volatile</span> Thread thread;</span><br><span class="line">    <span class="keyword">int</span> ws;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="ReentrantLock的实现"><a href="#ReentrantLock的实现" class="headerlink" title="ReentrantLock的实现"></a>ReentrantLock的实现</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReentrantLock</span> <span class="keyword">implements</span> <span class="title">Lock</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">7373984872572414699L</span>;</span><br><span class="line">    <span class="comment">/** Synchronizer providing all implementation mechanics */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Sync sync;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Base of synchronization control for this lock. Subclassed</span></span><br><span class="line"><span class="comment">     * into fair and nonfair versions below. Uses AQS state to</span></span><br><span class="line"><span class="comment">     * represent the number of holds on the lock.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">abstract</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Sync</span> <span class="keyword">extends</span> <span class="title">AbstractQueuedSynchronizer</span> </span>&#123;</span><br></pre></td></tr></table></figure>
-
-<p>ReentrantLock内部有AQS的实现Sync对象，又在Sync的基础上实现了子类公平锁和非公平锁</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">NonfairSync</span> <span class="keyword">extends</span> <span class="title">Sync</span></span></span><br><span class="line"><span class="class"><span class="title">static</span> <span class="title">final</span> <span class="title">class</span> <span class="title">FairSync</span> <span class="keyword">extends</span> <span class="title">Sync</span></span></span><br></pre></td></tr></table></figure>
-
-<h3 id="加锁过程"><a href="#加锁过程" class="headerlink" title="加锁过程"></a>加锁过程</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> ReentrantLock lock = <span class="keyword">new</span> ReentrantLock(<span class="keyword">true</span>);</span><br><span class="line"> Thread t1= <span class="keyword">new</span> Thread(<span class="string">"t1"</span>)&#123;</span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">     <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">         lock.lock();</span><br><span class="line">         logic();</span><br><span class="line">         lock.unlock();</span><br><span class="line">     &#125;</span><br><span class="line"> &#125;;</span><br><span class="line">t1.start();</span><br></pre></td></tr></table></figure>
-
-<p>上面实现了一个ReentrantLock的加锁过程，内部的运行过程如下</p>
-<p><strong>先看非公平锁（默认）</strong></p>
-<h4 id="lock方法"><a href="#lock方法" class="headerlink" title="lock方法"></a>lock方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">lock</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (compareAndSetState(<span class="number">0</span>, <span class="number">1</span>))</span><br><span class="line">        setExclusiveOwnerThread(Thread.currentThread());</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        acquire(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>lock方法会尝试CAS通过改变锁状态去申请锁，申请到了设置自己是Owner</p>
-<p>否则走正常的加锁流程acquire(1)，这个1表示加锁成功会加到state的值</p>
-<h4 id="acquire方法（正常加锁流程）"><a href="#acquire方法（正常加锁流程）" class="headerlink" title="acquire方法（正常加锁流程）"></a>acquire方法（正常加锁流程）</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">acquire</span><span class="params">(<span class="keyword">int</span> arg)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!tryAcquire(arg) &amp;&amp;</span><br><span class="line">        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))</span><br><span class="line">        selfInterrupt();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>tryAcquire(arg)尝试加锁，如果加锁失败则会调用acquireQueued方法加入队列去排队，如果加锁成功则不会调用</p>
-<h4 id="tryAcquire方法（尝试加锁）"><a href="#tryAcquire方法（尝试加锁）" class="headerlink" title="tryAcquire方法（尝试加锁）"></a>tryAcquire方法（尝试加锁）</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">final</span> <span class="keyword">boolean</span> <span class="title">tryAcquire</span><span class="params">(<span class="keyword">int</span> acquires)</span> </span>&#123;<span class="comment">//acquires=1</span></span><br><span class="line">    <span class="comment">//获取当前线程</span></span><br><span class="line">    <span class="keyword">final</span> Thread current = Thread.currentThread();</span><br><span class="line">    <span class="comment">//获取lock对象的上锁状态，如果锁是自由状态则=0，如果被上锁则为1，大于1表示重入</span></span><br><span class="line">    <span class="keyword">int</span> c = getState();</span><br><span class="line">    <span class="keyword">if</span> (c == <span class="number">0</span>) &#123;<span class="comment">//没人占用锁</span></span><br><span class="line">        <span class="comment">//hasQueuedPredecessors，判断自己是否需要排队</span></span><br><span class="line">        <span class="comment">//如果不需要排队则进行cas尝试加锁，如果加锁成功则把当前线程设置为拥有锁的线程返回true</span></span><br><span class="line">        <span class="keyword">if</span> (!hasQueuedPredecessors() &amp;&amp;</span><br><span class="line">            compareAndSetState(<span class="number">0</span>, acquires)) &#123;</span><br><span class="line">            <span class="comment">//设置当前线程为拥有锁的线程</span></span><br><span class="line">            setExclusiveOwnerThread(current);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//判断是不是重入（只需把这个线程拿出来判断是否当前线程即可判断重入）    </span></span><br><span class="line">    <span class="comment">//如果C不等于0，而且当前线程不等于拥有锁的线程直接返回false，加锁失败</span></span><br><span class="line">    <span class="comment">//如果C不等于0，但是当前线程等于拥有锁的线程则表示这是一次重入，那么直接把状态+1表示重入次数+1</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (current == getExclusiveOwnerThread()) &#123;</span><br><span class="line">        <span class="keyword">int</span> nextc = c + acquires;</span><br><span class="line">        <span class="keyword">if</span> (nextc &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> Error(<span class="string">"Maximum lock count exceeded"</span>);</span><br><span class="line">        setState(nextc);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>第一步判断锁是不是自由状态，如果是则判断直接是否需要排队；如果不需要排队则进行cas操作去上锁<br>第二步如果不是自由状态再判断是不是重入，如果不是重入则直接返回false加锁失败，如果是重入则把计数器+1</p>
-<h4 id="hasQueuedPredecessors方法"><a href="#hasQueuedPredecessors方法" class="headerlink" title="hasQueuedPredecessors方法"></a>hasQueuedPredecessors方法</h4><p>如果A是第一个去获得锁的线程，那么和队列无关，线程直接持有锁，也不会初始化队列</p>
-<p>如果发生了竞争，A在占用锁的时候来了B.lock，<strong>那么这个时候就会初始化AQS，初始化AQS会在队列的头部虚拟一个Thread为NULL的Node，因为队列当中的head永远是持有锁的那个node</strong>，用这个Thread为NULL的node来代表A，B将自己插在队尾然后park</p>
-<p>A释放锁后unpark它后面的node，node被唤醒后把自己设成head，<strong>把node的Thread设置为null</strong></p>
-<p>hasQueuedPredecessors方法判断队列是否被初始化（如果没有初始化显然不需要排队），和是否需要排队（队列如果被初始化了，则自己有可能需要排队，有人领先，先初始化了队列）</p>
-<h3 id="公平锁和非公平锁"><a href="#公平锁和非公平锁" class="headerlink" title="公平锁和非公平锁"></a>公平锁和非公平锁</h3><p><img src="/2020/08/03/AQS%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/2.png" alt="2"></p>
-<p>如果是公平锁就乖乖走正常加锁流程，无一例外</p>
-<p>如果是非公平锁，无脑CAS设置State锁状态，去尝试抢占一次，失败就走正常加锁流程</p>
-<h2 id="自定义AQS"><a href="#自定义AQS" class="headerlink" title="自定义AQS"></a>自定义AQS</h2><p>state的访问方式有三种:</p>
-<ul>
-<li>getState()</li>
-<li>setState()</li>
-<li>compareAndSetState()</li>
-</ul>
-<p>AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行，如Semaphore/CountDownLatch）。</p>
-<p>不同的自定义同步器争用共享资源的方式也不同。<strong>自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可</strong>，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法：</p>
-<ul>
-<li>isHeldExclusively()：该线程是否正在独占资源。只有用到condition才需要去实现它。</li>
-<li>tryAcquire(int)：独占方式。尝试获取资源，成功则返回true，失败则返回false。</li>
-<li>tryRelease(int)：独占方式。尝试释放资源，成功则返回true，失败则返回false。</li>
-<li>tryAcquireShared(int)：共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。</li>
-<li>tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回true，否则返回false。</li>
-</ul>
-<p>　　以ReentrantLock为例，state初始化为0，表示未锁定状态。A线程lock()时，会调用tryAcquire()独占该锁并将state+1。此后，其他线程再tryAcquire()时就会失败，直到A线程unlock()到state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A线程自己是可以重复获取此锁的（state会累加），这就是可重入的概念。但要注意，获取多少次就要释放多么次，这样才能保证state是能回到零态的。</p>
-<p>　　再以CountDownLatch以例，任务分为N个子线程去执行，state也初始化为N（注意N要与线程个数一致）。这N个子线程是并行执行的，每个子线程执行完后countDown()一次，state会CAS减1。等到所有子线程都执行完后(即state=0)，会unpark()主调用线程，然后主调用线程就会从await()函数返回，继续后余动作。</p>
-<p>　　一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现tryAcquire-tryRelease、tryAcquireShared-tryReleaseShared中的一种即可。但AQS也支持自定义同步器同时实现独占和共享两种方式，如ReentrantReadWriteLock，排他锁用在写上，共享锁用在读上。</p>
-
+        
       
 
       
@@ -971,81 +908,6 @@
 
 
   
-    <article id="post-SpringBoot源码体会" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/07/20/SpringBoot%E6%BA%90%E7%A0%81%E4%BD%93%E4%BC%9A/">SpringBoot源码体会</a>
-    </h1>
-  
-
-        
-        <a href="/2020/07/20/SpringBoot%E6%BA%90%E7%A0%81%E4%BD%93%E4%BC%9A/" class="archive-article-date">
-  	<time datetime="2020-07-20T07:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-07-20</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>今天学到Spring Boot里嵌入式Servlet配置和启动的源码</p>
-<h4 id="定制嵌入式Servlet的相关配置的两种方式"><a href="#定制嵌入式Servlet的相关配置的两种方式" class="headerlink" title="定制嵌入式Servlet的相关配置的两种方式"></a>定制嵌入式Servlet的相关配置的两种方式</h4><p>发现以往定制嵌入式Servlet的相关配置都是使用两种方式，一是在properties或者yml文件中写servlet.port=8081、servlet.tomcat.uri-encoding=UTF-8这种，二是新建一个类继承EmbeddedServletContainerCustomizer（内嵌Servlet容器定制器），重写里面的customize方法。</p>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">SpringBoot</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/07/20/SpringBoot%E6%BA%90%E7%A0%81%E4%BD%93%E4%BC%9A/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
@@ -1147,10 +1009,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
               </li>
              
@@ -1163,11 +1021,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">同步</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">同步</a>
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1179,7 +1037,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">集合</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1187,7 +1053,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">集合</a>
+                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1199,15 +1065,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">IOC</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1215,11 +1073,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
+                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">SpringMVC</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1231,7 +1093,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1239,7 +1101,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1247,11 +1113,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1263,10 +1129,6 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">线程</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">sync</a>
               </li>
              
@@ -1275,11 +1137,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">静态</a>
+                <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">无锁</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">静态</a>
               </li>
              
               <li class="article-tag-list-item">

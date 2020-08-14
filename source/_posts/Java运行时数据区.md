@@ -9,6 +9,8 @@ tags:
 
 文章来自[视频课程总结](https://www.bilibili.com/video/BV1kJ411g7C1)
 
+<!--more-->
+
 线程私有：虚拟机栈、本地方法栈、程序计数器
 
 线程共享：堆、方法区

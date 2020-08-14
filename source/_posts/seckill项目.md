@@ -2749,6 +2749,100 @@ public CommonReturnType getItem(@RequestParam(name = "id") Integer id) {
 }
 ```
 
+#### getitem.html
+
+```html
+<html>
+<head>
+<meta charset="utf-8">
+<link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+<script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+
+</head>
+
+<body class="login">
+  <div class="content">
+    <h3 class="form-title">商品详情</h3>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品名</label>
+      <div>
+        <label class="control-label" id="title"/>
+      </div>
+    </div>
+     <div class="form-group">
+      <label class="control-label">商品描述</label>
+      <div>
+        <label class="control-label" id="description"/>
+      </div>
+    </div>
+    <div id="normalPriceContainer" class="form-group">
+      <label class="control-label">商品价格</label>
+      <div>
+        <label class="control-label" id="price"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品库存</label>
+      <div>
+        <label class="control-label" id="stock"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div>
+        <img style="width:200px;heigth:auto" id="imgUrl">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品销量</label>
+      <div>
+        <label class="control-label" id="sales"/>
+      </div>
+  </div>
+</body>
+
+<script>
+  function getParam(paramName) {
+	    paramValue = "", isFound = !1;         
+	    if (this.location.search.indexOf("?") == 0 && this.location.search.indexOf("=") > 1) {               
+	       arrSource = unescape(this.location.search).substring(1, this.location.search.length).split("&"), i = 0;               
+	        while (i < arrSource.length && !isFound) arrSource[i].indexOf("=") > 0 && arrSource[i].split("=")[0].toLowerCase() ==  paramName.toLowerCase() && (paramValue = arrSource[i].split("=")[1], isFound = !0), i++  }
+	        	
+	        return paramValue == "" && (paramValue = null), paramValue 
+	}
+
+  var g_itemVO = {}
+
+    //获取商品详情
+      $.ajax({
+        type: "GET",
+        url:"http://localhost:8080/item/get",
+        data:{
+          "id":getParam("id"),
+        },
+        xhrFields: {withCredentials: true},
+        success:function(data) {
+          if (data.status == "success") {
+            g_itemVO = data.data;
+            reloadDom();
+            setInterval(reloadDom, 1000);
+          } else {
+            alert("获取信息失败，原因为" + data.data.errMsg);
+          }
+        },
+        error:function(data) {
+          alert("获取信息失败，原因为" + data.responseText);
+        }
+      });
+      return false;
+    });
+</script>
+
+</html>
+```
+
 ### 商品列表页
 
 #### Dao层
@@ -2819,3 +2913,947 @@ public CommonReturnType listItem() {
 
 ![35](seckill项目/35.png)
 
+#### listitem.html
+
+```html
+<html>
+<head>
+<meta charset="utf-8">
+<link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+<script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+  <div class="content">
+    <h3 class="form-title">商品列表浏览</h3>
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>商品名</th>
+            <th>商品图片</th>
+            <th>商品描述</th>
+            <th>商品价格</th>
+            <th>商品库存</th>
+            <th>商品销量</th>
+          </tr>
+        </thead>
+        <tbody id="container">
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+
+<script>
+  //定义全局商品数组信息
+  var g_itemList = [];
+
+  jQuery(document).ready(function() {
+      $.ajax({
+        type: "GET",
+        url:"http://localhost:8080/item/list",
+        xhrFields: {withCredentials: true},
+        success:function(data) {
+          if (data.status == "success") {
+            g_itemList = data.data;
+            reloadDom();
+          } else {
+            alert("获取商品信息失败，原因为" + data.data.errMsg);
+          }
+        },
+        error:function(data) {
+          alert("获取商品信息失败，原因为" + data.responseText);
+        }
+      });
+      return false;
+    });
+
+  function reloadDom() {
+    for (var i = 0; i < g_itemList.length; i ++) {
+      var itemVO = g_itemList[i];
+      var dom = "<tr data-id = '"+ itemVO.id +"' id='itemDetail" + itemVO.id + "'><td>" + itemVO.title + "</td><td><img style='width:100px;height:auto;' src='" + itemVO.imgUrl + "'/></td><td>" + 
+                itemVO.description + "</td><td>" + itemVO.price + "</td><td>" + itemVO.stock + "</td><td>" + itemVO.sales + "</td></tr>";
+      $("#container").append($(dom));
+      $("#itemDetail" + itemVO.id).on("click", function(e) {
+        window.location.href = "getitem.html?id=" + $(this).data("id");
+      });
+    }
+  }
+</script>
+
+</html>
+```
+
+## 交易模型管理
+
+### 交易模型创建
+
+#### Service层
+
+##### OrderModel
+
+在Service的Model中创建OrderModel
+
+```java
+package com.seckillproject.service.model;
+
+import java.math.BigDecimal;
+
+//用户下单的交易模型
+public class OrderModel {
+
+    //2020081200001812
+    private String id;//id为String类型而不是Integer,因为会有明显的字符串拼接,前面是年月日后面是什么什么
+    //购买的用户id
+    private Integer userId;
+
+    //购买的商品id
+    private Integer itemId;//商品的单价可能会变化，这里记录当时购买的时候的单价是多少
+
+    //购买商品的单价
+    private BigDecimal itemPrice;
+
+    //购买的数量
+    private Integer amount;
+
+    //购买的金额
+    private BigDecimal orderPrice;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(Integer itemId) {
+        this.itemId = itemId;
+    }
+
+    public Integer getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
+    public BigDecimal getOrderPrice() {
+        return orderPrice;
+    }
+
+    public void setOrderPrice(BigDecimal orderPrice) {
+        this.orderPrice = orderPrice;
+    }
+
+    public BigDecimal getItemPrice() {
+        return itemPrice;
+    }
+
+    public void setItemPrice(BigDecimal itemPrice) {
+        this.itemPrice = itemPrice;
+    }
+}
+```
+
+这里仅考虑的是每次用户只买一件商品的情况
+
+#### MyBatis自动生成插件
+
+在mybatis-generator.xml中添加
+
+```xml
+<table tableName="order_info" domainObjectName="OrderDO" enableCountByExample="false"
+enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false"
+selectByExampleQueryId="false" ></table>
+```
+
+#### Service层
+
+##### createOrder
+
+创建OrderService
+
+```java
+package com.seckillproject.service.model;
+
+public interface OrderService {
+    OrderModel createOrder(Integer userId,Integer itemId,Integer amount);   
+}
+```
+
+接着去Impl中实现它
+
+```java
+package com.seckillproject.service.impl;
+
+import com.seckillproject.dao.OrderDOMapper;
+import com.seckillproject.dataobject.OrderDO;
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.error.EmBusinessError;
+import com.seckillproject.service.ItemService;
+import com.seckillproject.service.UserService;
+import com.seckillproject.service.model.ItemModel;
+import com.seckillproject.service.model.OrderModel;
+import com.seckillproject.service.model.OrderService;
+import com.seckillproject.service.model.UserModel;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+
+@Service
+public class OrderServiceImpl implements OrderService {
+    @Autowired
+    private ItemService itemService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private OrderDOMapper orderDOMapper;
+    @Override
+    @Transactional
+    public OrderModel createOrder(Integer userId, Integer itemId, Integer amount) throws BusinessException {
+        //1.校验下单状态：下单商品是否存在、用户是否合法、购买数量是否正确
+        ItemModel itemModel = itemService.getItemById(itemId);
+        if(itemModel == null) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
+        }
+        UserModel userModel = userService.getUserById(userId);
+        if(userModel == null) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"用户信息不存在");
+        }
+        if(amount <= 0 || amount > 99) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"数量信息不正确");
+        }
+        //2.落单减库存
+        boolean result = itemService.decreaseStock(itemId, amount);
+        if(!result) {
+            throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
+        }
+        //3.订单入库
+        OrderModel orderModel = new OrderModel();
+        orderModel.setUserId(userId);
+        orderModel.setItemId(itemId);
+        orderModel.setAmount(amount);
+        orderModel.setItemPrice(itemModel.getPrice());
+        orderModel.setOrderPrice(itemModel.getPrice().multiply(new BigDecimal(amount)));
+        //生成交易流水号也就是订单号
+
+        OrderDO orderDO = convertFromOrderModel(orderModel);
+        orderDOMapper.insertSelective(orderDO);
+        //4.返回前端
+
+        return null;
+    }
+    private String generateOrderNo() {
+        //订单号有十六位
+        //前八位为时间信息,年月日,这个可以用于以后用SQL语句查询某年某月某日的信息
+
+        //中间六位为自增序列,用于在某年某月某日一天的订单量不超过六位,保证不重复
+
+        //最后两位为分库分表位,00-99,假如我们用userID%100作为分库分表位,即将订单按userId分到100个库里的100张表里,分散数据库压力,所以最后两位作为分库分表的路由信息
+    }
+    private OrderDO convertFromOrderModel(OrderModel orderModel) {
+        if(orderModel == null) {
+            return null;
+        }
+        OrderDO orderDO = new OrderDO();
+        BeanUtils.copyProperties(orderModel,orderDO);
+        return orderDO;
+    }
+}
+
+```
+
+**落单减库存，落单的时候对库存加锁，可能会出现有人恶意刷订单，但是不付钱，等订单失效到期**
+
+**支付减库存，落单的时候检查是否有库存，支付的时候才对库存加锁，但可能会出现超卖的情况**
+
+##### decreaseStock
+
+这里采用落单减库存
+
+这里就体现了item表和item_stock表的设计原理了，item表大部分情况下用于查询，库存字段在高压情况下做降解，也就是将item拆成item展示服务和库存服务
+
+为了保证冻结状态原子性要对数据表记录加锁
+
+实现库存扣减需要在ItemService中添加
+
+```java
+//库存扣减
+boolean decreaseStock(Integer userId,Integer amount) throws BusinessException;
+```
+
+接下来在Impl中实现decreaseStock
+
+```java
+@Override
+@Transactional
+public boolean decreaseStock(Integer itemId, Integer amount) throws BusinessException {
+    int affectedRow = itemStockDOMapper.decreaseStock(itemId, amount);
+    if(affectedRow > 0) {
+        //更新库存成功
+        return true;
+    }else {
+        //更新库存失败
+        return false;
+    }
+}
+```
+
+#### Dao层
+
+##### decreaseStock
+
+要改ItemStockDOMapper的SQL语句
+
+```xml
+</update>
+<update id="decreaseStock">
+update item
+set stock = stock - #{amount}
+where item_id = #{item_id} and stock >= #{amount}
+</update>
+```
+
+上面这条SQL语句是原子执行的
+
+在ItemStockDOMapper中添加
+
+```java
+int decreaseStock(@Param("itemId") Integer itemId,@Param("amount") Integer amount);
+```
+
+为什么使用Param看[这里](https://blog.csdn.net/sinat_33010325/article/details/84261662?utm_medium=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&depth_1-utm_source=distribute.pc_relevant_t0.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param)
+
+这里让decreaseStock返回一个int，也就是它受影响的条目数，通过条目数为0或者1来判断它是否执行成功
+
+##### generateOrderNo
+
+而对于generateOrderNo的第二布，获取自增序列
+
+由于现在使用的是MySQL，不像Oracle可以获得自增序列，于是在数据库建一个通用的表
+
+![36](seckill项目/36.png)
+
+这张表创建的意义是初始化一些sequence，并且sequence初始是0，每次都加一个步长
+
+![37](seckill项目/37.png)
+
+使用Mybatis-generator自动生成后，要修改一些地方
+
+![38](seckill项目/38.png)
+
+在SequenceDOMapper.xml中添加SQL语句
+
+```xml
+<select id="getSequenceByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+select
+<include refid="Base_Column_List" />
+from sequence_info
+where name = #{name,jdbcType=VARCHAR} for update
+</select>
+```
+
+这里使用select的for update方法，可以对数据库加锁
+
+SequenceDOMapper中添加
+
+```java
+SequenceDO getSequenceByName(String name);
+```
+
+最后完善generateOrderNo
+
+```java
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+private String generateOrderNo() {
+    //订单号有十六位
+    StringBuilder stringBuilder = new StringBuilder();
+    //前八位为时间信息,年月日,这个可以用于以后用SQL语句查询某年某月某日的信息
+    LocalDateTime now = LocalDateTime.now();
+    String nowDate = now.format(DateTimeFormatter.ISO_DATE).replace("-", "");
+    stringBuilder.append(nowDate);
+    //中间六位为自增序列,用于在某年某月某日一天的订单量不超过六位,保证不重复
+    //获取当前sequence
+    int sequence = 0;
+    SequenceDO sequenceDO = sequenceDOMapper.getSequenceByName("order_info");
+    sequence = sequenceDO.getCurrentValue();
+    sequenceDO.setCurrentValue(sequenceDO.getCurrentValue() + sequenceDO.getStep());
+    sequenceDOMapper.updateByPrimaryKeySelective(sequenceDO);
+    String sequenceStr = String.valueOf(sequence);
+    for(int i = 0; i < 6-sequenceStr.length(); i++) {
+        stringBuilder.append("0");
+    }
+    stringBuilder.append(sequenceStr);
+    //最后两位为分库分表位,00-99,假如我们用userID%100作为分库分表位,即将订单按userId分到100个库里的100张表里,分散数据库压力,所以最后两位作为分库分表的路由信息
+    stringBuilder.append("00");
+    return stringBuilder.toString();
+}
+```
+
+##### 遇到的问题
+
+存在的问题：没有设置上限，很可能超过6位
+
+解决办法：在sequence_info表里添加一列max_value字段设置最大值以及init_value初始值，如果current_value+step超过了max_value，就从初始值开始循环使用
+
+存在的问题：因为generateOrderNo方法是写在createOrder方法中的，createOrder方法又加了事务标签，当事务回滚的时候，generateOrderNo也会回滚，因此下一次会createOrder会拿到上一次回滚的流水号，这是不允许的，因为要保证订单号的全局唯一性，就算那一次createOrder失败了，也要保证不同
+
+解决办法：在generateOrderNo上添加@Transactional(propagation = Propagation.REQUIRES_NEW)
+
+只需要让generateOrderNo执行完成后不需要将事务handle在createOrder，而是直接提交掉，这样就能保证执行完这段代码，外部事务不论成功与否，里面的事务都会提交掉，对应的订单号都会被使用掉
+
+#### Controller层
+
+创建OrderController，userId先空着
+
+```java
+package com.seckillproject.controller;
+
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.error.EmBusinessError;
+import com.seckillproject.response.CommonReturnType;
+import com.seckillproject.service.model.OrderService;
+import com.seckillproject.service.model.UserModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+
+@Controller("order")
+@RequestMapping("/order")
+@CrossOrigin(allowCredentials = "true",allowedHeaders = "*")
+public class OrderController extends BaseController{
+    @Autowired
+    private HttpServletRequest httpServletRequest;
+    @Autowired
+    public OrderService orderService;
+    //封装下单请求
+    @RequestMapping(value = "/createorder",method = {RequestMethod.POST},consumes = {CONTENT_TYPE_FORMED})
+    @ResponseBody
+    public CommonReturnType createOrder(@RequestParam(name = "itemId") Integer itemId,
+                                        @RequestParam(name = "amount") Integer amount) throws BusinessException {
+
+        Boolean isLogin = (Boolean)httpServletRequest.getSession().getAttribute("IS_LOGIN");
+        if(isLogin == null || !isLogin.booleanValue()) {
+            throw new BusinessException(EmBusinessError.USER_NOT_LOGIN,"用户还未登录，不能下单");
+        }
+        //获取用户的登录信息
+        UserModel userModel = (UserModel) httpServletRequest.getSession().getAttribute("LOGIN_USER");
+
+        orderService.createOrder(userModel.getId(),itemId,amount);
+        return CommonReturnType.create(null);
+    }
+}
+
+```
+
+这里新增了一个错误码USER_NOT_LOGIN(20003,"用户还未登录")
+
+和前端做了一个约定，前端判断错误码如果是20003就跳转到login.html
+
+测试如下
+
+![39](seckill项目/39.png)
+
+登录后下单可以看到数据库已经有了
+
+![40](seckill项目/40.png)
+
+但是item_price和order_price都没进去，原因在于OrderDO的item_price是Double类型，Order_Model是BigDecimal类型的，所以需要转换
+
+```java
+private OrderDO convertFromOrderModel(OrderModel orderModel) {
+    if(orderModel == null) {
+        return null;
+    }
+    OrderDO orderDO = new OrderDO();
+    BeanUtils.copyProperties(orderModel,orderDO);
+    orderDO.setItemPrice(orderModel.getItemPrice().doubleValue());
+    orderDO.setOrderPrice(orderModel.getOrderPrice().doubleValue());
+    return orderDO;
+}
+```
+
+这里还遗漏了一件事情，就是商品卖出去以后销量会增加
+
+在ItemService里增加
+
+```java
+void increaseSales(Integer itemId,Integer amount) throws BusinessException;
+```
+
+在ItemDOMapper.xml中增加SQL
+
+```xml
+</update>
+<update id="increaseSales">
+
+update item
+set sales = sales + #{amount}
+where id = #{id,jdbcType=INTEGER}
+</update>
+```
+
+在ItemDOMapper里增加
+
+```java
+int increaseSales(@Param("id") Integer id,@Param("amount") Integer amount);
+```
+
+最后完成increaseSales
+
+```java
+//落单成功就增加销量
+@Override
+@Transactional
+public void increaseSales(Integer itemId, Integer amount) throws BusinessException {
+    itemDOMapper.increaseSales(itemId,amount);
+}
+```
+
+在OrderServiceImpl的createOrder中增加
+
+```java
+//增加商品的销量
+itemService.increaseSales(itemId,amount);
+```
+
+测试，下单前库存97，销量67
+
+![41](seckill项目/41.png)
+
+下单后变成了96和68
+
+![42](seckill项目\42.png)
+
+## 秒杀模型管理
+
+### 活动模型创建
+
+#### 设计数据库
+
+![43](seckill项目/43.png)
+
+MySQL datetime类型默认是年-月-日 时:分:秒的格式
+
+#### Model
+
+新建PromoModel
+
+```java
+package com.seckillproject.service.model;
+
+import org.joda.time.DateTime;
+
+import java.math.BigDecimal;
+
+public class PromoModel {
+    private Integer id;
+
+    //秒杀活动名称
+    private String promoName;
+
+    //秒杀活动的开始时间
+    private DateTime startDate;
+
+    //秒杀活动的适用商品
+    private Integer itemId;
+    //秒杀活动的商品价格
+    private BigDecimal promoItemPrice;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getPromoName() {
+        return promoName;
+    }
+
+    public void setPromoName(String promoName) {
+        this.promoName = promoName;
+    }
+
+    public DateTime getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(DateTime startDate) {
+        this.startDate = startDate;
+    }
+
+    public Integer getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(Integer itemId) {
+        this.itemId = itemId;
+    }
+
+    public BigDecimal getPromoItemPrice() {
+        return promoItemPrice;
+    }
+
+    public void setPromoItemPrice(BigDecimal promoItemPrice) {
+        this.promoItemPrice = promoItemPrice;
+    }
+}
+```
+
+这里DateTime是Joda的DateTime
+
+### MyBatis自动生成器
+
+mybatis-generator.xml中添加
+
+```xml
+<table tableName="promo" domainObjectName="PromoDO" enableCountByExample="false"
+enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false"
+selectByExampleQueryId="false" ></table>
+```
+
+### 活动模型商品模型结合
+
+给秒杀数据库和秒杀模型添加字段endDate作为结束时间
+
+为了判断活动进行和结束状态给PromoModel加一个字段status，通过用结束时间和开始时间在PromoModel中聚合status字段，可以让外层直接调用判断，而不用再自己判断
+
+#### PromoService层
+
+```java
+package com.seckillproject.service.impl;
+
+import com.seckillproject.dao.PromoDOMapper;
+import com.seckillproject.dataobject.PromoDO;
+import com.seckillproject.service.PromoService;
+import com.seckillproject.service.model.PromoModel;
+import org.joda.time.DateTime;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+
+@Service
+public class PromoServiceImpl implements PromoService {
+    @Autowired
+    private PromoDOMapper promoDOMapper;
+    @Override
+    public PromoModel getPromoByItemId(Integer itemId) {
+        //获取对应商品的秒杀活动信息
+
+        PromoDO promoDO = promoDOMapper.selectByItemId(itemId);
+        //转化为领域模型
+        PromoModel promoModel = convertFromDataObject(promoDO);
+        if(promoModel == null) {
+            return null;
+        }
+        //判断当前时间是否秒杀活动开始或正在进行
+        if(promoModel.getStartDate().isAfterNow()) {
+            promoModel.setStatus(1);
+        } else if(promoModel.getEndDate().isBeforeNow()) {
+            promoModel.setStatus(3);
+        } else {
+            promoModel.setStatus(2);
+        }
+        return promoModel;
+    }
+    private PromoModel convertFromDataObject(PromoDO promoDO) {
+        if(promoDO == null) {
+            return null;
+        }
+        PromoModel promoModel = new PromoModel();
+        BeanUtils.copyProperties(promoDO,promoModel);
+        promoModel.setPromoItemPrice(new BigDecimal(promoDO.getPromoItemPrice()));//double->bigdecimal
+        promoModel.setStartDate(new DateTime(promoDO.getStartDate()));//util.Date->joda DateTime
+        promoModel.setEndDate(new DateTime(promoDO.getEndDate()));//util.Date->joda DateTime
+        return promoModel;
+    }
+}
+```
+
+#### ItemModel
+
+商品应该有自己的一套秒杀活动的属性
+
+在ItemModel中增加
+
+```java
+//使用聚合模型,如果promoModel不为空，则表示拥有未结束的秒杀活动(还未开始+进行中)
+private PromoModel promoModel;
+```
+
+#### ItemServiceImpl
+
+增加获取活动商品信息
+
+```java
+@Override
+public ItemModel getItemById(Integer id) {
+    ItemDO itemDO = itemDOMapper.selectByPrimaryKey(id);
+    if(itemDO == null) {
+        return null;
+    }
+    //操作获得库存数量
+    ItemStockDO itemStockDO = itemStockDOMapper.selectByItemId(itemDO.getId());
+
+    //将dataobject转化成model领域模型
+    ItemModel itemModel = convertModleFromDataObject(itemDO,itemStockDO);
+
+    //获取活动商品信息
+    PromoModel promoModel = promoService.getPromoByItemId(itemModel.getId());
+    if(promoModel != null && promoModel.getStatus().intValue() != 3) {
+        itemModel.setPromoModel(promoModel);
+    }
+    return itemModel;
+}
+```
+
+#### ItemVO
+
+新增字段
+
+```java
+//商品是否在秒杀活动中，0没有秒杀活动，1秒杀活动待开始，2秒杀活动进行中
+private Integer promoStatus;
+
+//秒杀活动价格
+private BigDecimal promoPrice;
+
+//秒杀活动ID
+private Integer promoId;
+
+//秒杀活动开始时间
+private DateTime startDate;
+```
+
+#### ItemController
+
+Model转ItemVO的时候给上面的新字段赋值
+
+```java
+private ItemVO convertVOFromModel(ItemModel itemModel) {
+    if(itemModel == null) {
+        return null;
+    }
+    ItemVO itemVO = new ItemVO();
+    BeanUtils.copyProperties(itemModel,itemVO);
+    if(itemModel.getPromoModel() != null) {
+        itemVO.setPromoStatus(itemModel.getPromoModel().getStatus());
+        itemVO.setPromoId(itemModel.getId());
+        itemVO.setStartDate(itemModel.getPromoModel().getStartDate());
+        itemVO.setPromoPrice(itemModel.getPromoModel().getPromoItemPrice());
+    } else {
+        itemVO.setPromoStatus(0);
+    }
+    return itemVO;
+}
+```
+
+#### getItem.html
+
+```java
+<html>
+<head>
+<meta charset="utf-8">
+<link href="static/assets/global/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/global/css/components.css" rel="stylesheet" type="text/css"/>
+<link href="static/assets/admin/pages/css/login.css" rel="stylesheet" type="text/css"/>
+<script src="static/assets/global/plugins/jquery-1.11.0.min.js" type="text/javascript"></script>
+
+</head>
+
+<body class="login">
+  <div class="content">
+    <h3 class="form-title">商品详情</h3>
+     <div id="promoStartDateContainer" class="form-group">
+      <label style="color:red" class="control-label">秒杀开始时间</label>
+      <div>
+        <label style="color:red" class="control-label" id="promoStartDate"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品名</label>
+      <div>
+        <label class="control-label" id="title"/>
+      </div>
+    </div>
+     <div class="form-group">
+      <label class="control-label">商品描述</label>
+      <div>
+        <label class="control-label" id="description"/>
+      </div>
+    </div>
+    <div id="normalPriceContainer" class="form-group">
+      <label class="control-label">商品价格</label>
+      <div>
+        <label class="control-label" id="price"/>
+      </div>
+    </div>
+    <div id="promoPriceContainer" class="form-group">
+      <label style="color:red" class="control-label">秒杀价格</label>
+      <div>
+        <label style="color:red" class="control-label" id="promoPrice"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品库存</label>
+      <div>
+        <label class="control-label" id="stock"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div>
+        <img style="width:200px;heigth:auto" id="imgUrl">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="control-label">商品销量</label>
+      <div>
+        <label class="control-label" id="sales"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <button type="submit" class="btn blue" id = "createorder">
+        下单
+      </button>
+    </div>
+  </div>
+</body>
+
+<script>
+  function getParam(paramName) {
+	    paramValue = "", isFound = !1;         
+	    if (this.location.search.indexOf("?") == 0 && this.location.search.indexOf("=") > 1) {               
+	       arrSource = unescape(this.location.search).substring(1, this.location.search.length).split("&"), i = 0;               
+	        while (i < arrSource.length && !isFound) arrSource[i].indexOf("=") > 0 && arrSource[i].split("=")[0].toLowerCase() ==  paramName.toLowerCase() && (paramValue = arrSource[i].split("=")[1], isFound = !0), i++  }
+	        	
+	        return paramValue == "" && (paramValue = null), paramValue 
+	}
+
+  var g_itemVO = {}
+
+  jQuery(document).ready(function() {
+   			$("#createorder").on("click",function(){
+
+				$.ajax({
+					type:"POST",
+					contentType:"application/x-www-form-urlencoded",
+					url:"http://localhost:8080/order/createorder",
+					xhrFields:{withCredentials:true},
+					data:{
+						"itemId":g_itemVO.id,
+						"amount":1,
+						"promoId":g_itemVO.promoId
+					},
+					success:function(data){
+						if(data.status =="success"){
+							alert("下单成功！");
+							window.location.reload();
+						}else{
+							alert("下单失败！原因为"+data.data.errMsg);
+							if(data.data.errCode=="20003")
+								window.location.href="login.html";
+						}
+
+					},
+					error:function(data){
+						alert("下单失败！原因为"+data.responseText);
+					}
+				});
+
+			});
+
+    //获取商品详情
+      $.ajax({
+        type: "GET",
+        url:"http://localhost:8080/item/get",
+        data:{
+          "id":getParam("id"),
+        },
+        xhrFields: {withCredentials: true},
+        success:function(data) {
+          if (data.status == "success") {
+            g_itemVO = data.data;
+            reloadDom();
+            setInterval(reloadDom, 1000);
+          } else {
+            alert("获取信息失败，原因为" + data.data.errMsg);
+          }
+        },
+        error:function(data) {
+          alert("获取信息失败，原因为" + data.responseText);
+        }
+      });
+      return false;
+    });
+
+    function reloadDom() {
+      $("#title").text(g_itemVO.title);
+      $("#description").text(g_itemVO.description);
+      $("#stock").text(g_itemVO.stock);
+      $("#price").text(g_itemVO.price);
+      $("#imgUrl").attr("src",g_itemVO.imgUrl);
+      $("#sales").text(g_itemVO.sales);
+      if (g_itemVO.promoStatus == 1) {
+        //秒杀活动还未开始
+        var startTime = g_itemVO.startDate.replace(new RegExp("-", "gm"), "/");
+        startTime = (new Date(startTime)).getTime();
+        var nowTime = Date.parse(new Date());
+        var delta = (startTime - nowTime) / 1000;
+        if (delta <= 0) {
+          //活动已开始
+          g_itemVO.promoStatus = 2;
+          reloadDom();
+        }
+        $("#promoStartDate").text("秒杀活动将于：" + g_itemVO.startDate + "开始！倒计时：" + delta + "秒！");
+        $("#promoPrice").text(g_itemVO.promoPrice);
+        $("#createorder").attr("disabled", true);
+      } else if (g_itemVO.promoStatus == 2) {
+        //秒杀正再进行中
+        $("#promoStartDate").text("秒杀活动正在进行中！");
+        $("#promoPrice").text(g_itemVO.promoPrice);
+        $("#createorder").attr("disabled", false);
+        $("#normalPriceContainer").hide();
+      }
+    }
+</script>
+
+</html>
+```
+
+测试情况如下
+
+![44](seckill项目/44.png)
+
+
+
+![45](seckill项目/45.png)

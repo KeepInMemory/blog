@@ -19,6 +19,8 @@ AQS的核心思想就是申请锁的线程CAS改变state
 
 当然在此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现
 
+<!--more-->
+
 ```java
 /**
  * Head of the wait queue, lazily initialized.  Except for
