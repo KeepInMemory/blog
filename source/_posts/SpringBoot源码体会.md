@@ -33,11 +33,11 @@ properties和yml的加载就是说到SpringBoot的自动配置原理了
 
 #### SpringBoot自动配置原理
 
-SpringBoot在启动的时候加载加载所有的自动配置类（如果我们实现的功能没有自动配置类就需要我们自己写，有就用SpringBoot自带的）
+SpringBoot在启动的时候加载主配置类，上面有@EnableAutoConfiguration，这个注解通过EnableAutoConfigurationImportSelector给容器添加了各种自动配置类AutoConfiguration（如果我们实现的功能没有自动配置类就需要我们自己写，有就用SpringBoot自带的）
 
 自动配置类上的@ConfigurationProperties(perfix = "spring.http.encoding")注解的作用是把我们自己写的application.properties或者yml里的配置和这个自动配置类上的属性进行映射，比如是否存在spring.http.encoding开头的配置，有就赋值并生成相应的properties对象，比如HttpEncodingProperties，将properties对象放在容器中。
 
-自动配置类初始化各种组件的时候，有时候AotoConfiguration类的生成组件方法上有@ConditionalOnMissingXXX，意思是如果组件对象在容器中，那么就不重复生成了。
+自动配置类初始化各种组件的时候，有时候AutoConfiguration类的生成组件方法上有@ConditionalOnMissingXXX，意思是如果组件对象在容器中，那么就不重复生成了。
 
 具体的生成过程是：组件的各种定制器（xxxCustomizer、xxxConfigurer）既可以有我们自己设置的，也可以有SpringBoot帮我们生成的，而Spring Boot帮我们生成的对象所用的值就会从properties对象中获取属性，properties对象如果我们有在properties文件yml文件中设置属性值就用我们的，否则就用默认的。（properties对象的构造方法就初始化了很多默认值，然后再在配置文件里寻找对应的赋值）
 
@@ -58,6 +58,16 @@ WebMvcAutoConfiguration自动配置类下还有一个生成视图解析器的方
 ![3](SpringBoot源码体会/3.png)
 
 ContentNegotiatingViewResolver组合容器中所有的视图解析器
+
+##### 总结
+
+SpringBoot在启动的时候加载主配置类，上面有@EnableAutoConfiguration，这个注解通过EnableAutoConfigurationImportSelector给容器添加了各种自动配置类AutoConfiguration
+
+自动配置类会帮我们生成一些组件，组件的定制化有两种方式，一是通过在application.properites和yml文件里配置，二是通过继承xxxConfigurer/xxxCustomizer类，实现里面的定制化方法，将这个类放到容器中
+
+第一个方法的原理是，自动配置类会生成一个properties对象，自动配置类上的@ConfigurationProperties(perfix = "spring.http.encoding")注解的作用是把我们自己写的application.properties或者yml里的配置和这个自动配置类上的属性进行映射，如果没有配置的属性就使用默认的，生成组件依靠这个properties对象
+
+第二个方法的原理是，自动配置类会通过后置处理器类，在生成组件后，初始化组件之前，找到容器中有关的定制器类，执行这些定制器类的定制化方法，初始化组件。
 
 #### 如何修改SpringBoot的默认配置
 

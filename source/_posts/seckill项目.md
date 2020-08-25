@@ -3857,3 +3857,111 @@ private ItemVO convertVOFromModel(ItemModel itemModel) {
 
 
 ![45](seckill项目/45.png)
+
+#### OrderModel
+
+```java
+//若非空则以秒杀商品方式下单
+private Integer promoId;
+```
+
+新增promoId，另外数据库的order表也要新增一个字段
+
+![46](seckill项目/46.png)
+
+OrderDO新增
+
+```java
+private Integer promoId;
+
+public Integer getPromoId() {
+    return promoId;
+}
+
+public void setPromoId(Integer promoId) {
+    this.promoId = promoId;
+}
+```
+
+OrderDOMapper.xml新增字段
+
+#### OrderService
+
+接口增加了promoId
+
+```java
+package com.seckillproject.service;
+
+import com.seckillproject.error.BusinessException;
+import com.seckillproject.service.model.OrderModel;
+
+public interface OrderService {
+    //1通过前端传过来promoId,然后下单接口内校验对应id是否属于对应商品且活动已开始
+    //2直接在下单接口内判断对应的商品是否存在秒杀活动，若存在进行中的则以秒杀价格下单
+    //倾向于第一种，第一个原因因为一个商品可能会存在不同APP的有不同的秒杀活动，所以让前端传promoId
+    //第二个原因因为如果在订单接口里还要判断秒杀活动领域模型，相当于任何平销商品也要去判断，性能低
+    OrderModel createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException;
+}
+```
+
+orderserviceimpl修改createOrder
+
+```java
+@Override
+@Transactional
+public OrderModel createOrder(Integer userId, Integer itemId, Integer promoId, Integer amount) throws BusinessException {
+    //1.校验下单状态：下单商品是否存在、用户是否合法、购买数量是否正确
+    ItemModel itemModel = itemService.getItemById(itemId);
+    if(itemModel == null) {
+        throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"商品信息不存在");
+    }
+    UserModel userModel = userService.getUserById(userId);
+    if(userModel == null) {
+        throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"用户信息不存在");
+    }
+    if(amount <= 0 || amount > 99) {
+        throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"数量信息不正确");
+    }
+    //校验活动信息
+    if(promoId != null) {
+        //校验对应活动是否存在这个适用商品
+        if(promoId.intValue() != itemModel.getPromoModel().getId()) {
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR, "活动信息不正确");
+        }
+        //校验活动是否在进行中
+        else if(itemModel.getPromoModel().getStatus().intValue() != 2){
+            throw new BusinessException(EmBusinessError.PARAMETER_VALIDATION_ERROR,"活动还未开始");
+        }
+    }
+    //2.落单减库存
+    boolean result = itemService.decreaseStock(itemId, amount);
+    if(!result) {
+        throw new BusinessException(EmBusinessError.STOCK_NOT_ENOUGH);
+    }
+    //3.订单入库
+    OrderModel orderModel = new OrderModel();
+    orderModel.setUserId(userId);
+    orderModel.setItemId(itemId);
+    orderModel.setPromoId(promoId);
+    orderModel.setAmount(amount);
+    if(promoId != null) {
+        orderModel.setItemPrice(itemModel.getPromoModel().getPromoItemPrice());
+    } else {
+        orderModel.setItemPrice(itemModel.getPrice());
+    }
+    orderModel.setOrderPrice(orderModel.getItemPrice().multiply(new BigDecimal(amount)));
+    //生成交易流水号也就是订单号
+    orderModel.setId(generateOrderNo());
+    OrderDO orderDO = convertFromOrderModel(orderModel);
+    orderDOMapper.insertSelective(orderDO);
+
+    //增加商品的销量
+    itemService.increaseSales(itemId,amount);
+    //4.返回前端
+    return orderModel;
+}
+```
+
+经过下单测试后，发现order_info表里有了一条订单记录，活动id=1，商品价格也为活动价格
+
+![47](seckill项目/47.png)

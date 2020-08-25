@@ -19,7 +19,7 @@
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/20/SpringBoot%E6%BA%90%E7%A0%81%E4%BD%93%E4%BC%9A/2.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/20/SpringBoot%E6%BA%90%E7%A0%81%E4%BD%93%E4%BC%9A/3.png">
 <meta property="article:published_time" content="2020-07-20T07:00:00.000Z">
-<meta property="article:modified_time" content="2020-08-02T12:30:56.647Z">
+<meta property="article:modified_time" content="2020-08-23T13:29:08.103Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="SpringBoot">
 <meta name="twitter:card" content="summary">
@@ -189,9 +189,9 @@
 <p><strong>为什么在properties或者yml文件的配置也会生效呢？</strong></p>
 <p>因为ServerProperties类也是实现了EmbeddedServletContainerCustomizer接口，所以它也是内嵌Servlet容器定制器的一种</p>
 <p>properties和yml的加载就是说到SpringBoot的自动配置原理了</p>
-<h4 id="SpringBoot自动配置原理"><a href="#SpringBoot自动配置原理" class="headerlink" title="SpringBoot自动配置原理"></a>SpringBoot自动配置原理</h4><p>SpringBoot在启动的时候加载加载所有的自动配置类（如果我们实现的功能没有自动配置类就需要我们自己写，有就用SpringBoot自带的）</p>
+<h4 id="SpringBoot自动配置原理"><a href="#SpringBoot自动配置原理" class="headerlink" title="SpringBoot自动配置原理"></a>SpringBoot自动配置原理</h4><p>SpringBoot在启动的时候加载主配置类，上面有@EnableAutoConfiguration，这个注解通过EnableAutoConfigurationImportSelector给容器添加了各种自动配置类AutoConfiguration（如果我们实现的功能没有自动配置类就需要我们自己写，有就用SpringBoot自带的）</p>
 <p>自动配置类上的@ConfigurationProperties(perfix = “spring.http.encoding”)注解的作用是把我们自己写的application.properties或者yml里的配置和这个自动配置类上的属性进行映射，比如是否存在spring.http.encoding开头的配置，有就赋值并生成相应的properties对象，比如HttpEncodingProperties，将properties对象放在容器中。</p>
-<p>自动配置类初始化各种组件的时候，有时候AotoConfiguration类的生成组件方法上有@ConditionalOnMissingXXX，意思是如果组件对象在容器中，那么就不重复生成了。</p>
+<p>自动配置类初始化各种组件的时候，有时候AutoConfiguration类的生成组件方法上有@ConditionalOnMissingXXX，意思是如果组件对象在容器中，那么就不重复生成了。</p>
 <p>具体的生成过程是：组件的各种定制器（xxxCustomizer、xxxConfigurer）既可以有我们自己设置的，也可以有SpringBoot帮我们生成的，而Spring Boot帮我们生成的对象所用的值就会从properties对象中获取属性，properties对象如果我们有在properties文件yml文件中设置属性值就用我们的，否则就用默认的。（properties对象的构造方法就初始化了很多默认值，然后再在配置文件里寻找对应的赋值）</p>
 <p><strong>举个例子</strong></p>
 <p>WebMvcAutoConfiguration自动配置类下有个ViewResolver视图解析器组件，下面这个图是它在AutoConfiguration里的创建方法。</p>
@@ -202,6 +202,10 @@
 <p>WebMvcAutoConfiguration自动配置类下还有一个生成视图解析器的方法</p>
 <p><img src="/2020/07/20/SpringBoot%E6%BA%90%E7%A0%81%E4%BD%93%E4%BC%9A/3.png" alt="3"></p>
 <p>ContentNegotiatingViewResolver组合容器中所有的视图解析器</p>
+<h5 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h5><p>SpringBoot在启动的时候加载主配置类，上面有@EnableAutoConfiguration，这个注解通过EnableAutoConfigurationImportSelector给容器添加了各种自动配置类AutoConfiguration</p>
+<p>自动配置类会帮我们生成一些组件，组件的定制化有两种方式，一是通过在application.properites和yml文件里配置，二是通过继承xxxConfigurer/xxxCustomizer类，实现里面的定制化方法，将这个类放到容器中</p>
+<p>第一个方法的原理是，自动配置类会生成一个properties对象，自动配置类上的@ConfigurationProperties(perfix = “spring.http.encoding”)注解的作用是把我们自己写的application.properties或者yml里的配置和这个自动配置类上的属性进行映射，如果没有配置的属性就使用默认的，生成组件依靠这个properties对象</p>
+<p>第二个方法的原理是，自动配置类会通过后置处理器类，在生成组件后，初始化组件之前，找到容器中有关的定制器类，执行这些定制器类的定制化方法，初始化组件。</p>
 <h4 id="如何修改SpringBoot的默认配置"><a href="#如何修改SpringBoot的默认配置" class="headerlink" title="如何修改SpringBoot的默认配置"></a>如何修改SpringBoot的默认配置</h4><p>SpringBoot在自动配置很多组件的时候，先看容器中有没有用户自己配置的（@Bean、@Component）如果有就用用户配置的，如果没有，才自动配置；如果有些组件可以有多个（比如ViewResolver）将用户配置的和自己默认的组合起来（<strong>可以借助implements xxxCustomizer、xxxConfigurer，也可以借助直接implements要实现的组件类等其他的方式</strong>）；</p>
 <p>在SpringBoot中会有非常多的xxxConfigurer帮助我们进行扩展配置</p>
 <p>在SpringBoot中会有很多的xxxCustomizer帮助我们进行定制配置</p>
@@ -452,6 +456,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">IO</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">集合</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">AQS</a>
               </li>
              
@@ -460,15 +480,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -476,7 +488,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -484,19 +496,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">集合</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -505,6 +513,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">NIO</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -544,11 +556,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -556,15 +564,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">反射</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -572,15 +576,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">反射</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">数组</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">sync</a>
+                <a href="javascript:void(0)" class="js-tag color4">红黑树</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -588,15 +592,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">sync</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">静态</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">

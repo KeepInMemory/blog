@@ -19,7 +19,7 @@
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/31/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/2.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/31/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/3.png">
 <meta property="article:published_time" content="2020-07-31T03:38:30.000Z">
-<meta property="article:modified_time" content="2020-08-02T12:30:56.624Z">
+<meta property="article:modified_time" content="2020-08-20T06:10:21.776Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="JMM">
 <meta name="twitter:card" content="summary">
@@ -199,9 +199,9 @@
 <p>这样就相当于串行，性能太低</p>
 <h4 id="MESI缓存一致性协议"><a href="#MESI缓存一致性协议" class="headerlink" title="MESI缓存一致性协议"></a>MESI缓存一致性协议</h4><p>多个cpu从主内存读取同一个数据到各自的高速缓存，当其中某个cpu修改了工作内存里的数据（assign后），数据会马上同步回主内存，其他cpu通过总线嗅探机制（相当于监听器、消息队列）可以感知到数据发生了变化，将自己缓存里的数据标识为失效，需要重新从主内存读</p>
 <p><img src="/2020/07/31/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B/3.png" alt="3"></p>
-<h3 id="Volatile"><a href="#Volatile" class="headerlink" title="Volatile"></a>Volatile</h3><h4 id="缓存可见性实现原理-保证可见性"><a href="#缓存可见性实现原理-保证可见性" class="headerlink" title="缓存可见性实现原理/保证可见性"></a>缓存可见性实现原理/保证可见性</h4><p>底层是lock汇编指令，每个Volatile变量做修改的代码，都会加一个lock前缀</p>
-<p>lock前缀指令：将工作内存里该数据立即写回到主内存（store+write），开启MESI缓存一致性协议</p>
-<p>因为store已经在主内存了，只是没有write，会触发cpu总线嗅探，这个时候会read到旧值，为了避免这种情况，lock前缀指令会在store前lock住主内存的那个数据，直到write结束，保证store+write一起执行</p>
+<h3 id="Volatile"><a href="#Volatile" class="headerlink" title="Volatile"></a>Volatile</h3><h4 id="缓存可见性实现原理-保证可见性"><a href="#缓存可见性实现原理-保证可见性" class="headerlink" title="缓存可见性实现原理/保证可见性"></a>缓存可见性实现原理/保证可见性</h4><p>底层是lock汇编指令，每个Volatile变量做<strong>修改</strong>的代码，都会加一个lock前缀</p>
+<p>lock前缀指令：将工作内存里该数据立即写回到主内存（store+write），开启MESI缓存一致性协议，锁住总线</p>
+<p>锁总线：因为store已经在主内存了，只是没有write，会触发cpu总线嗅探，这个时候会read到旧值，为了避免这种情况，lock前缀指令会在store前lock住主内存的那个数据，直到write结束，保证store+write一起执行</p>
 <h4 id="保证有序性"><a href="#保证有序性" class="headerlink" title="保证有序性"></a>保证有序性</h4><p>在 Java 内存模型中，允许编译器和处理器对指令进行重排序，重排序过程不会影响到单线程程序的执行，却会影响到多线程并发执行的正确性。</p>
 <p>java内存模型的先天有序性happens-before原则，如果两个操作执行顺序无法从happens-before原则推导出来，那么他们就不能保证有序性，jvm可以随意的对他们进行重排序。</p>
 <p>编译器在生成字节码时，会在指令序列中插入内存屏障来禁止特定类型的<strong>处理器重排序</strong></p>
@@ -483,6 +483,22 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
           <ul class="article-tag-list" q-show="showTags">
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">IO</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">集合</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">AQS</a>
               </li>
              
@@ -491,15 +507,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -507,7 +515,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -515,19 +523,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">集合</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -536,6 +540,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">NIO</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -575,11 +583,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
+                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -587,15 +591,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">反射</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -603,15 +603,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">反射</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">数组</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">sync</a>
+                <a href="javascript:void(0)" class="js-tag color4">红黑树</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -619,15 +619,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">sync</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">静态</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">
