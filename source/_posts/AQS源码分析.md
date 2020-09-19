@@ -9,13 +9,17 @@ tags:
 
 ### 成员
 
+AQS维护了一个带头节点和尾节点的双向链表
+
 AQS有Node类型的head和tail，用来记录等待队列的头和尾
 
 volatile int state是锁状态，加锁成功则为1，重入+1 解锁则为0
 
-AQS的核心思想就是申请锁的线程CAS改变state
+AQS的核心思想就是申请锁的线程CAS改变state，改变成功获取锁
 
 失败后的线程需要加入到队列的尾部，一旦锁被释放了，AQS就把锁让给队首的第二个node
+
+
 
 当然在此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现
 
@@ -54,6 +58,30 @@ public class Node{
     int ws;
 }
 ```
+
+## 自定义AQS
+
+state的访问方式有三种:
+
+- getState()
+- setState()
+- compareAndSetState()
+
+AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行，如Semaphore/CountDownLatch）。
+
+不同的自定义同步器争用共享资源的方式也不同。**自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可**，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法：
+
+- isHeldExclusively()：该线程是否正在独占资源。只有用到condition才需要去实现它。
+- tryAcquire(int)：独占方式。尝试获取资源，成功则返回true，失败则返回false。
+- tryRelease(int)：独占方式。尝试释放资源，成功则返回true，失败则返回false。
+- tryAcquireShared(int)：共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。
+- tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回true，否则返回false。
+
+　　以ReentrantLock为例，state初始化为0，表示未锁定状态。A线程lock()时，会调用tryAcquire()独占该锁并将state+1。此后，其他线程再tryAcquire()时就会失败，直到A线程unlock()到state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A线程自己是可以重复获取此锁的（state会累加），这就是可重入的概念。但要注意，获取多少次就要释放多么次，这样才能保证state是能回到零态的。
+
+　　再以CountDownLatch以例，任务分为N个子线程去执行，state也初始化为N（注意N要与线程个数一致）。这N个子线程是并行执行的，每个子线程执行完后countDown()一次，state会CAS减1。主线程通过latch.await()方法在等待队列里等待，等到所有子线程都执行完后(即state=0)，会unpark()主调用线程，然后主调用线程就会从await()函数返回，继续后余动作。
+
+　　一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现tryAcquire-tryRelease、tryAcquireShared-tryReleaseShared中的一种即可。但AQS也支持自定义同步器同时实现独占和共享两种方式，如ReentrantReadWriteLock，排他锁用在写上，共享锁用在读上。
 
 ## ReentrantLock的实现
 
@@ -156,7 +184,9 @@ protected final boolean tryAcquire(int acquires) {//acquires=1
 }
 ```
 
-第一步判断锁是不是自由状态，如果是则判断直接是否需要排队；如果不需要排队则进行cas操作去上锁
+tryAcquire方法先获取当前线程以及锁状态state
+
+第一步判断锁是不是自由状态，如果没人占用锁，判断是否需要排队，因为有可能其他线程抢先了，如果自己是第二个到的线程，自己需要去初始化AQS队列，如果自己是第三及以后的线程，那么第二个线程已经帮忙初始化好了AQS，自己到队列里等就行了；如果不需要排队则进行cas操作去上锁
 第二步如果不是自由状态再判断是不是重入，如果不是重入则直接返回false加锁失败，如果是重入则把计数器+1
 
 #### hasQueuedPredecessors方法
@@ -178,27 +208,3 @@ hasQueuedPredecessors方法判断队列是否被初始化（如果没有初始�
 如果是公平锁就乖乖走正常加锁流程，无一例外
 
 如果是非公平锁，无脑CAS设置State锁状态，去尝试抢占一次，失败就走正常加锁流程
-
-## 自定义AQS
-
-state的访问方式有三种:
-
-- getState()
-- setState()
-- compareAndSetState()
-
-AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行，如Semaphore/CountDownLatch）。
-
-不同的自定义同步器争用共享资源的方式也不同。**自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可**，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法：
-
-- isHeldExclusively()：该线程是否正在独占资源。只有用到condition才需要去实现它。
-- tryAcquire(int)：独占方式。尝试获取资源，成功则返回true，失败则返回false。
-- tryRelease(int)：独占方式。尝试释放资源，成功则返回true，失败则返回false。
-- tryAcquireShared(int)：共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。
-- tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回true，否则返回false。
-
-　　以ReentrantLock为例，state初始化为0，表示未锁定状态。A线程lock()时，会调用tryAcquire()独占该锁并将state+1。此后，其他线程再tryAcquire()时就会失败，直到A线程unlock()到state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A线程自己是可以重复获取此锁的（state会累加），这就是可重入的概念。但要注意，获取多少次就要释放多么次，这样才能保证state是能回到零态的。
-
-　　再以CountDownLatch以例，任务分为N个子线程去执行，state也初始化为N（注意N要与线程个数一致）。这N个子线程是并行执行的，每个子线程执行完后countDown()一次，state会CAS减1。等到所有子线程都执行完后(即state=0)，会unpark()主调用线程，然后主调用线程就会从await()函数返回，继续后余动作。
-
-　　一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现tryAcquire-tryRelease、tryAcquireShared-tryReleaseShared中的一种即可。但AQS也支持自定义同步器同时实现独占和共享两种方式，如ReentrantReadWriteLock，排他锁用在写上，共享锁用在读上。

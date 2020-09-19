@@ -93,7 +93,7 @@ ThreadLocalMap是ThreadLocal的静态内部类， 没有实现Map接口，用独
 
 #### 内存泄漏相关概念
 
-- 内存溢出: Memory overflow 没有足够的内存提供申请者使用.
+- 内存溢出: Memory overflow 没有足够的内存提供给申请者使用
 - 内存泄漏: Memory Leak 程序中已经动态分配的堆内存由于某种原因, 程序未释放或者无法释放, 造成系统内部的浪费, 导致程序运行速度减缓甚至系统崩溃等严重结果. 内存泄漏的堆积终将导致内存溢出
 
 #### 如果Key是强引用
@@ -105,7 +105,13 @@ ThreadLocalMap是ThreadLocal的静态内部类， 没有实现Map接口，用独
 ![4](ThreadLocal底层原理/4.png)
 
 在以上两种内存泄漏的情况，都有两个前提：
- 1.没有手动删除这个Entry	2.CurrentThread依然运行
+ 1.没有手动删除这个Entry	2.存在于线程池的环境中，线程执行完后放回，CurrentThread依然运行。
+
+如果一个thread执行完毕，进入 TERMINATED 状态时，作为一种GC Root，terminated 状态的 thread本身就是可以被GC的。
+
+那么thread所引用的 threadLocalMap 也就是可以被GC的。什么时候不进入 terminated 呢？
+
+就是当 thread 配合线程池使用的情况下，thread在运行完毕之后会被再次放回线程池。
 
 无论 ThreadLocalMap 中的 key 使用哪种类型引用都无法完全避免内存泄漏，跟使用弱引用没有关系。
 
@@ -123,7 +129,7 @@ ThreadLocalMap是ThreadLocal的静态内部类， 没有实现Map接口，用独
 
 2.若Entry已经存在且Key等于传入的Key，直接更改Entry里的Value
 
-3.若Entry存在且Key位null，调用replaceStaleEntry来更换这个Key为空的Entry
+3.若Entry存在且Key为null，调用replaceStaleEntry来更换这个Key为空的Entry
 
 4.循环检测，直到Entry为null，在这里新建Entry插入
 

@@ -20,7 +20,7 @@
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/3.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/4.png">
 <meta property="article:published_time" content="2020-08-01T02:06:44.000Z">
-<meta property="article:modified_time" content="2020-08-02T12:30:56.651Z">
+<meta property="article:modified_time" content="2020-08-30T00:38:41.995Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="ThreadLocal">
 <meta name="twitter:card" content="summary">
@@ -194,18 +194,21 @@
 
 <h4 id="Entry结构"><a href="#Entry结构" class="headerlink" title="Entry结构"></a>Entry结构</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">    * The entries in this hash map extend WeakReference, using</span></span><br><span class="line"><span class="comment">    * its main ref field as the key (which is always a</span></span><br><span class="line"><span class="comment">    * ThreadLocal object).  Note that null keys (i.e. entry.get()</span></span><br><span class="line"><span class="comment">    * == null) mean that the key is no longer referenced, so the</span></span><br><span class="line"><span class="comment">    * entry can be expunged from table.  Such entries are referred to</span></span><br><span class="line"><span class="comment">    * as "stale entries" in the code that follows.</span></span><br><span class="line"><span class="comment">    翻译:</span></span><br><span class="line"><span class="comment">    * Entry继承WeakReference, 并且用ThreadLocal作为key</span></span><br><span class="line"><span class="comment">    * 如果key为null(entry.get() == null)意味着key不在被引用,因此这时候entry也可以从table</span></span><br><span class="line"><span class="comment">    * 中清除(被垃圾回收器回收) </span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Entry</span> <span class="keyword">extends</span> <span class="title">WeakReference</span>&lt;<span class="title">ThreadLocal</span>&lt;?&gt;&gt; </span>&#123;</span><br><span class="line">       <span class="comment">/** The value associated with this ThreadLocal. */</span></span><br><span class="line">       Object value;</span><br><span class="line"></span><br><span class="line">       Entry(ThreadLocal&lt;?&gt; k, Object v) &#123;</span><br><span class="line">           <span class="keyword">super</span>(k);</span><br><span class="line">           value = v;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
 <h3 id="强弱引用和内存泄露"><a href="#强弱引用和内存泄露" class="headerlink" title="强弱引用和内存泄露"></a>强弱引用和内存泄露</h3><h4 id="内存泄漏相关概念"><a href="#内存泄漏相关概念" class="headerlink" title="内存泄漏相关概念"></a>内存泄漏相关概念</h4><ul>
-<li>内存溢出: Memory overflow 没有足够的内存提供申请者使用.</li>
+<li>内存溢出: Memory overflow 没有足够的内存提供给申请者使用</li>
 <li>内存泄漏: Memory Leak 程序中已经动态分配的堆内存由于某种原因, 程序未释放或者无法释放, 造成系统内部的浪费, 导致程序运行速度减缓甚至系统崩溃等严重结果. 内存泄漏的堆积终将导致内存溢出</li>
 </ul>
 <h4 id="如果Key是强引用"><a href="#如果Key是强引用" class="headerlink" title="如果Key是强引用"></a>如果Key是强引用</h4><p><img src="/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/3.png" alt="3"></p>
 <h4 id="如果Key是弱引用"><a href="#如果Key是弱引用" class="headerlink" title="如果Key是弱引用"></a>如果Key是弱引用</h4><p><img src="/2020/08/01/ThreadLocal%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86/4.png" alt="4"></p>
-<p>在以上两种内存泄漏的情况，都有两个前提：<br> 1.没有手动删除这个Entry    2.CurrentThread依然运行</p>
+<p>在以上两种内存泄漏的情况，都有两个前提：<br> 1.没有手动删除这个Entry    2.存在于线程池的环境中，线程执行完后放回，CurrentThread依然运行。</p>
+<p>如果一个thread执行完毕，进入 TERMINATED 状态时，作为一种GC Root，terminated 状态的 thread本身就是可以被GC的。</p>
+<p>那么thread所引用的 threadLocalMap 也就是可以被GC的。什么时候不进入 terminated 呢？</p>
+<p>就是当 thread 配合线程池使用的情况下，thread在运行完毕之后会被再次放回线程池。</p>
 <p>无论 ThreadLocalMap 中的 key 使用哪种类型引用都无法完全避免内存泄漏，跟使用弱引用没有关系。</p>
 <h4 id="为什么使用弱引用"><a href="#为什么使用弱引用" class="headerlink" title="为什么使用弱引用"></a>为什么使用弱引用</h4><p>在 ThreadLocalMap 中的<code>set/getEntry</code> 方法中，会对 key 为 null （也即是 ThreadLocal 为 null ）进行判断，如果为 null 的话会进行清除</p>
 <p>这就意味着使用完 ThreadLocal , CurrentThread 依然运行的前提下。就算忘记调用 remove 方法，弱引用比强引用可以多一层保障：弱引用的 ThreadLocal 会被回收，而对应value在下一次 ThreadLocaIMap 调用 <code>set/get/remove</code> 中的任一方法的时候<strong>大概率</strong>会被清除，从而避免内存泄漏。（在下一次ThreadLocaIMap 调用 <code>set/get/remove</code> 前是有内存泄露的），应该尽可能在每次使用 ThreadLocal 后手动调用 remove()</p>
 <h3 id="ThreadLocalMap的Hash冲突解决"><a href="#ThreadLocalMap的Hash冲突解决" class="headerlink" title="ThreadLocalMap的Hash冲突解决"></a>ThreadLocalMap的Hash冲突解决</h3><h4 id="代码流程"><a href="#代码流程" class="headerlink" title="代码流程"></a>代码流程</h4><p>1.首先还是根据key计算索引，查找索引位置上的Entry</p>
 <p>2.若Entry已经存在且Key等于传入的Key，直接更改Entry里的Value</p>
-<p>3.若Entry存在且Key位null，调用replaceStaleEntry来更换这个Key为空的Entry</p>
+<p>3.若Entry存在且Key为null，调用replaceStaleEntry来更换这个Key为空的Entry</p>
 <p>4.循环检测，直到Entry为null，在这里新建Entry插入</p>
 <p>5.最后调用cleanSomeSlots，清理key为null的Entry，判断Size是否达到了rehash条件，达到就执行rehash执行全表扫描清理</p>
 <h4 id="重点"><a href="#重点" class="headerlink" title="重点"></a>重点</h4><p>ThreadLocalMap使用线性探测方法来解决哈希冲突，当检测到数组末尾会从数据开头接着找</p>
@@ -461,7 +464,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -469,27 +472,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">面经</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">同步</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -497,7 +480,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">面经</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">同步</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -509,15 +508,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -533,11 +536,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
+                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">事务</a>
+                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -549,11 +552,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -561,7 +564,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -569,11 +572,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -581,7 +580,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">数组</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -593,15 +600,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+                <a href="javascript:void(0)" class="js-tag color5">sync</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -609,11 +612,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">

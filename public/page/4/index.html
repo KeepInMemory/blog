@@ -150,6 +150,80 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-LeetCode刷题记录-精选TOP面试题" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/10/23/LeetCode%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95-%E7%B2%BE%E9%80%89TOP%E9%9D%A2%E8%AF%95%E9%A2%98/">LeetCode刷题记录-精选TOP面试题</a>
+    </h1>
+  
+
+        
+        <a href="/2019/10/23/LeetCode%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95-%E7%B2%BE%E9%80%89TOP%E9%9D%A2%E8%AF%95%E9%A2%98/" class="archive-article-date">
+  	<time datetime="2019-10-23T04:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-10-23</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="34-在排序数组中查找元素的第一个和最后一个位置"><a href="#34-在排序数组中查找元素的第一个和最后一个位置" class="headerlink" title="34.在排序数组中查找元素的第一个和最后一个位置"></a>34.在排序数组中查找元素的第一个和最后一个位置</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span>[] searchRange(<span class="keyword">int</span>[] nums, <span class="keyword">int</span> target) &#123;</span><br><span class="line">        <span class="keyword">int</span>[] res = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">2</span>];</span><br><span class="line">        Arrays.fill(res,-<span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span>(nums.length == <span class="number">0</span>)<span class="keyword">return</span> res;</span><br><span class="line">        <span class="keyword">int</span> left = <span class="number">0</span>,right = nums.length-<span class="number">1</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">while</span>(left &lt; right)&#123;<span class="comment">//寻找左侧边界</span></span><br><span class="line">            <span class="keyword">int</span> mid = left + (right-left)/<span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[mid] == target)</span><br><span class="line">                right = mid;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span>(nums[mid] &gt; target)</span><br><span class="line">                right = mid;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                left = mid + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(left == nums.length)res[<span class="number">0</span>] = -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">else</span> res[<span class="number">0</span>] = (nums[left] == target? left:-<span class="number">1</span>);</span><br><span class="line">        </span><br><span class="line">        left = <span class="number">0</span>;right = nums.length;</span><br><span class="line">        <span class="keyword">while</span>(left &lt; right)&#123;<span class="comment">//寻找右侧边界</span></span><br><span class="line">            <span class="keyword">int</span> mid = left + (right-left)/<span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span>(nums[mid] == target)</span><br><span class="line">                left = mid + <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span>(nums[mid] &gt; target)</span><br><span class="line">                right = mid;</span><br><span class="line">            <span class="keyword">else</span> </span><br><span class="line">                left = mid + <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(left == <span class="number">0</span>)res[<span class="number">0</span>] = -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">else</span> res[<span class="number">1</span>] = (nums[left-<span class="number">1</span>] == target? left-<span class="number">1</span>:-<span class="number">1</span>);</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">LeetCode</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2019/10/23/LeetCode%E5%88%B7%E9%A2%98%E8%AE%B0%E5%BD%95-%E7%B2%BE%E9%80%89TOP%E9%9D%A2%E8%AF%95%E9%A2%98/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-LeetCode刷题记录-腾讯精选练习" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -718,85 +792,6 @@
 
 
   
-    <article id="post-锁的优化-无锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/09/17/%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96-%E6%97%A0%E9%94%81/">锁的优化-无锁</a>
-    </h1>
-  
-
-        
-        <a href="/2019/09/17/%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96-%E6%97%A0%E9%94%81/" class="archive-article-date">
-  	<time datetime="2019-09-17T04:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-09-17</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>无锁就是假设资源的访问是没有冲突的，假设遇到了冲突则使用比较交换技术来鉴别线程冲突，一旦检测到就重试当前操作直到没有冲突为止。</p>
-<h4 id="比较交换CAS"><a href="#比较交换CAS" class="headerlink" title="比较交换CAS"></a>比较交换CAS</h4><p>CAS算法过程：包含三个参数CAS(V,E,N)，V表示要更新的变量，E表示预期值，N表示新值。仅当V值等于E值时，才会将V值设置为N，如果V值和E值不同，说明已经有其他进程做了更新，当前线程不更新，返回V的真实值。CAS失败后会返回失败，允许线程再次尝试，也允许线程放弃操作。</p>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">实战Java高并发程序设计</a>
-        		</li>
-      		 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">无锁</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2019/09/17/%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96-%E6%97%A0%E9%94%81/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-锁的优化-ThreadLocal" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -875,32 +870,28 @@
 
 
   
-    <article id="post-JDK并发包-线程池" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+    <article id="post-锁的优化-无锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2019/09/14/JDK%E5%B9%B6%E5%8F%91%E5%8C%85-%E7%BA%BF%E7%A8%8B%E6%B1%A0/">JDK并发包-线程池</a>
+      <a class="article-title" href="/2019/09/17/%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96-%E6%97%A0%E9%94%81/">锁的优化-无锁</a>
     </h1>
   
 
         
-        <a href="/2019/09/14/JDK%E5%B9%B6%E5%8F%91%E5%8C%85-%E7%BA%BF%E7%A8%8B%E6%B1%A0/" class="archive-article-date">
-  	<time datetime="2019-09-14T04:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-09-14</time>
+        <a href="/2019/09/17/%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96-%E6%97%A0%E9%94%81/" class="archive-article-date">
+  	<time datetime="2019-09-17T04:00:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2019-09-17</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h3 id="JDK对线程池的支持"><a href="#JDK对线程池的支持" class="headerlink" title="JDK对线程池的支持"></a>JDK对线程池的支持</h3><h4 id="固定大小线程池"><a href="#固定大小线程池" class="headerlink" title="固定大小线程池"></a>固定大小线程池</h4><p>JDK提供了Executor框架，本质就是个线程池</p>
-<p>newFixedThreadPool方法：返回一个固定线程数量的线程池，多余的任务会被保存在任务队列中，等待空闲线程。</p>
-<p>newSingleThreadExecutor方法：返回只有一个线程的线程池，多余的任务会被保存在任务队列中，等待空闲线程。</p>
-<p>newCachedThreadPool方法：返回一个可根据实际情况调整线程数量的线程池。若线程池有空闲线程，则会有限使用空闲线程。如果所有线程均在工作又有新任务提交，会创建新的线程处理，完毕后放回线程池。</p>
-<p>newSingleThreadScheduledExecutor方法：返回一个ScheduledExecutorService对象，线程池大小为1。ScheduledExecutorService接口在ExecutorService接口上增加了在一定时间执行某任务的功能。</p>
-<p>newScheduledThreadPool方法：返回一个ScheduledExecutorService对象，线程池可以指定线程数量。</p>
+        <p>无锁就是假设资源的访问是没有冲突的，假设遇到了冲突则使用比较交换技术来鉴别线程冲突，一旦检测到就重试当前操作直到没有冲突为止。</p>
+<h4 id="比较交换CAS"><a href="#比较交换CAS" class="headerlink" title="比较交换CAS"></a>比较交换CAS</h4><p>CAS算法过程：包含三个参数CAS(V,E,N)，V表示要更新的变量，E表示预期值，N表示新值。仅当V值等于E值时，才会将V值设置为N，如果V值和E值不同，说明已经有其他进程做了更新，当前线程不更新，返回V的真实值。CAS失败后会返回失败，允许线程再次尝试，也允许线程放弃操作。</p>
         
       
 
@@ -918,7 +909,7 @@
         		</li>
       		 
         		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">线程池</a>
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">无锁</a>
         		</li>
       		
 		</ul>
@@ -928,7 +919,7 @@
 
       
         <p class="article-more-link">
-          <a class="article-more-a" href="/2019/09/14/JDK%E5%B9%B6%E5%8F%91%E5%8C%85-%E7%BA%BF%E7%A8%8B%E6%B1%A0/">展开全文 >></a>
+          <a class="article-more-a" href="/2019/09/17/%E9%94%81%E7%9A%84%E4%BC%98%E5%8C%96-%E6%97%A0%E9%94%81/">展开全文 >></a>
         </p>
       
 
@@ -1055,7 +1046,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1063,27 +1054,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">面经</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">同步</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1091,7 +1062,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">面经</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">同步</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1103,15 +1090,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1127,11 +1118,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
+                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">事务</a>
+                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1143,11 +1134,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1155,7 +1146,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1163,11 +1154,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1175,7 +1162,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">数组</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1187,15 +1182,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+                <a href="javascript:void(0)" class="js-tag color5">sync</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1203,11 +1194,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">

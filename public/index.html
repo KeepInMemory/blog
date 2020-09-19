@@ -150,6 +150,156 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Spring循环依赖" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/09/19/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/">Spring循环依赖</a>
+    </h1>
+  
+
+        
+        <a href="/2020/09/19/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/" class="archive-article-date">
+  	<time datetime="2020-09-19T05:59:46.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-09-19</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="Bean的创建生命周期"><a href="#Bean的创建生命周期" class="headerlink" title="Bean的创建生命周期"></a>Bean的创建生命周期</h2><p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象</p>
+<p>3.填充属性（通过Setter进行依赖注入）</p>
+<p>4.BeanPostProcessor.postProcessBeforeInitialization()加工</p>
+<p>5.InitializingBean.afterPropertiesSet()方法对属性进行设置</p>
+<p>6.init-method</p>
+<p>7.BeanPostProcessor.postProcessAfterInitialization()加工</p>
+<p>8.Bean被放到单例池中SingletonObjects</p>
+<h2 id="循环依赖案例"><a href="#循环依赖案例" class="headerlink" title="循环依赖案例"></a>循环依赖案例</h2><p>Bean的生命周期-AService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找BService —-&gt;找不到 —-&gt;创建BService的Bean</p>
+<p>此时去创建BService</p>
+<p>Bean的生命周期-BService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找AService —-&gt;找不到 —-&gt;创建AService的Bean</p>
+<p>到这里出现了循环依赖</p>
+<p><img src="/2020/09/19/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/1.png" alt="1"></p>
+<h4 id="放入缓存"><a href="#放入缓存" class="headerlink" title="放入缓存"></a>放入缓存</h4><p><img src="/2020/09/19/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/2.png" alt="2"></p>
+<p>Bean的生命周期-AService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将原始对象放到缓存Map&lt;beanName,bean&gt;中</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找BService —-&gt;找不到 —-&gt;在缓存Map中找—-&gt;找不到创建BService</p>
+<p>Bean的生命周期-BService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将原始对象放到缓存Map&lt;beanName,bean&gt;中</p>
+<p>3.填充属性（依赖注入）—-&gt; 单例池找AService —-&gt;找不到—&gt;在缓存Map里找—–&gt;找到了填充属性</p>
+<p>成功构造出BService以后AService也能顺利创建</p>
+<p><strong>问题：如果在AService的BeanPostProcessor后置处理器中返回了一个新的AService对象，那么这个新的对象会被放在单例池中，而赋值给BSerice的AService却是原始对象，会报错，因为IOC容器是单例的但是却有两个AService</strong></p>
+<p><strong>BeanPostProcessor.postProcessBeforeInitialization()的返回值会被放在IOC容器中作为本次初始化的Bean</strong></p>
+<p><strong>同样的道理，BeanPostProcessor因为可以实现AOP功能，也就是在postProcessAfterInitialization中创建代理对象，将代理对象返回放在容器中，所以也会出现两个对象打破单例规则</strong></p>
+<h4 id="提前生成代理对象"><a href="#提前生成代理对象" class="headerlink" title="提前生成代理对象"></a>提前生成代理对象</h4><p>Bean的生命周期-AService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;SmartBeanPostProerssor产生代理对象—-&gt;将代理对象放到缓存Map&lt;beanName,bean&gt;中</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找BService —-&gt;找不到 —-&gt;在缓存Map中找—-&gt;找不到创建BService</p>
+<p>Bean的生命周期-BService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;SmartBeanPostProerssor产生代理对象—-&gt;将代理对象放到缓存Map&lt;beanName,bean&gt;中    </p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找AService —-&gt;找不到—&gt;在缓存Map里找—–&gt;找到了填充属性</p>
+<p>成功构造出BService以后AService也能顺利创建</p>
+<p><strong>问题：正常的代理对象是在第7步的后置处理器中产生的，现在提前到了第2步</strong></p>
+<p><strong>但是不是所有的对象都要在第2步产生代理对象，有些需要在第7步产生代理对象</strong></p>
+<p><strong>只有在循环依赖的情况下才需要在第2步提前产生代理对象</strong></p>
+<p><strong>可以提前生成代理对象，里面织入了增强方法，只不过Object target里的属性还没赋值罢了</strong></p>
+<p><strong>提前完成了AOP的功能后在底下的后置处理器中会判断是否完成了AOP功能，提前完成了就不再进行AOP</strong></p>
+<h4 id="lamda表达式优化"><a href="#lamda表达式优化" class="headerlink" title="lamda表达式优化"></a>lamda表达式优化</h4><p>Bean的生命周期-AService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将BeanName和原始对象的关系映射放到Map&lt;beanName,lamda(原始对象)&gt;里</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找BService —-&gt;找不到 —-&gt;在缓存Map中找—-&gt;找不到创建BService</p>
+<p>Bean的生命周期-BService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将BeanName和原始对象的关系映射放到Map&lt;beanName,lamda(原始对象)&gt;里</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找AService 找不到 —-&gt;在缓存Map中找—-&gt;找到了对应的关系lamda(原始对象)—-&gt;执行lamda(原始对象)—-&gt;提前得到代理对象</p>
+<p>成功构造出BService以后AService也能顺利创建</p>
+<p><strong>使用了懒加载的思想，用到了才会去提前创建代理对象，解决了所有情况都提前产生代理对象的情况，当出现循环依赖的时候才执行lamda表达式，lamda表达式替换了之前的代理对象</strong></p>
+<p><strong>这里的单例池就是一级缓存，缓存Map&lt;beanName,lamda(原始对象)&gt;就是三级缓存</strong></p>
+<p><strong>问题：如果有一个CService和AService也是循环依赖，那么AService需要注入BService的时候，BService在三级缓存中找到了lamda表达式执行了产生了代理对象，注入BService成功了，又需要注入CService，CService也找到了lamda表达式，也执行了一次，产生了两个代理对象，又不是单例了</strong></p>
+<h4 id="二级缓存"><a href="#二级缓存" class="headerlink" title="二级缓存"></a>二级缓存</h4><p>Bean的生命周期-AService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将BeanName和原始对象的关系映射放到Map&lt;beanName,lamda(原始对象)&gt;里</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找BService —-&gt;找不到 —-&gt;在缓存Map中找—-&gt;找不到创建BService</p>
+<p>Bean的生命周期-BService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将BeanName和原始对象的关系映射放到Map&lt;beanName,lamda(原始对象)&gt;里</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找AService 找不到 —-&gt;在缓存Map中找—-&gt;找到了对应的关系lamda(原始对象)—-&gt;执行lamda(原始对象)—-&gt;提前得到代理对象—–&gt;放到二级map&lt;beanName,代理对象&gt;里</p>
+<p>Bean的生命周期-CService</p>
+<p>1.通过配置扫描路径扫描类Class，得到BeanDefinition</p>
+<p>2.通过BeanDefiniton和反射创建对象 —-&gt;将BeanName和原始对象的关系映射放到Map&lt;beanName,lamda(原始对象)&gt;里</p>
+<p>3.填充属性（依赖注入） —-&gt; 单例池找AService 找不到 —-&gt;在二级Map中找—–&gt;提前得到代理对象（二级没找到才去三级map里面找—-&gt;找到了对应的关系lamda(原始对象)—-&gt;执行lamda(原始对象)—-&gt;得到代理对象—–&gt;放到二级缓存中去）</p>
+<p><strong>一级缓存（SingletonObjects）：单例池map</strong></p>
+<p><strong>二级缓存（earlySingletonObjects）：map&lt;beanName,代理对象&gt;</strong></p>
+<p><strong>三级缓存（ singletonFactories）：map&lt;beanName,lamda(原始对象)&gt;</strong></p>
+<h2 id="源码"><a href="#源码" class="headerlink" title="源码"></a>源码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> Object <span class="title">getSingleton</span><span class="params">(String beanName, <span class="keyword">boolean</span> allowEarlyReference)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//先去一级缓存单例池中找</span></span><br><span class="line">    Object singletonObject = <span class="keyword">this</span>.singletonObjects.get(beanName);</span><br><span class="line">    <span class="comment">//一级没找到并且还要创建</span></span><br><span class="line">    <span class="keyword">if</span> (singletonObject == <span class="keyword">null</span> &amp;&amp; <span class="keyword">this</span>.isSingletonCurrentlyInCreation(beanName)) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span>(<span class="keyword">this</span>.singletonObjects) &#123;</span><br><span class="line">            <span class="comment">//去二级缓存中找</span></span><br><span class="line">            singletonObject = <span class="keyword">this</span>.earlySingletonObjects.get(beanName);</span><br><span class="line">            <span class="comment">//二级缓存没找到</span></span><br><span class="line">            <span class="keyword">if</span> (singletonObject == <span class="keyword">null</span> &amp;&amp; allowEarlyReference) &#123;</span><br><span class="line">                <span class="comment">//去三级缓存中找</span></span><br><span class="line">                ObjectFactory&lt;?&gt; singletonFactory = (ObjectFactory)<span class="keyword">this</span>.singletonFactories.get(beanName);</span><br><span class="line">                <span class="comment">//lamda表达式不为空</span></span><br><span class="line">                <span class="keyword">if</span> (singletonFactory != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="comment">//执行lamda表达式获取代理对象</span></span><br><span class="line">                    singletonObject = singletonFactory.getObject();</span><br><span class="line">                    <span class="comment">//将代理对象放到二级缓存中</span></span><br><span class="line">                    <span class="keyword">this</span>.earlySingletonObjects.put(beanName, singletonObject);</span><br><span class="line">                    <span class="comment">//移出三级缓存的lamda表达式</span></span><br><span class="line">                    <span class="keyword">this</span>.singletonFactories.remove(beanName);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> singletonObject;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="构造方法注入的循环依赖"><a href="#构造方法注入的循环依赖" class="headerlink" title="构造方法注入的循环依赖"></a>构造方法注入的循环依赖</h2><p>上面是setter注入的循环依赖问题，可以通过三级缓存解决，因为在通过反射创建了对象以后，它的属性填充是滞后的，也就是可以通过已经创建了但内部属性还没赋值的对象去包装成代理对象，暴露给外部，让依赖它的Bean能够获得这个代理对象，从而完成属性的赋值</p>
+<p>通过构造方法注入形成的循环依赖则无法通过三级缓存来解决，因为需要先使用构造方法的参数去实例化对象以后，才能获得对象的引用。而不是像setter那样，先得到了对象的引用再进行赋值。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">spring</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/09/19/Spring%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-BIO-NIO" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -171,36 +321,43 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>IO过程:客户端程序—-&gt;客户端操作系统—-&gt;客户端网卡—–&gt;服务端网卡—–&gt;服务端操作系统—–&gt;服务端程序</p>
-<h1 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a>BIO</h1><p>BIO中有三个Socket，分别是服务器端监听的ServerSocket、客户端连接的Socket、客户端连上来后服务器端生成的用于和客户端通信的Socket</p>
+<h1 id="BIO"><a href="#BIO" class="headerlink" title="BIO"></a>BIO</h1><p>Blocking IO</p>
+<p>BIO中有三个Socket，分别是服务器端监听的ServerSocket、客户端连接的Socket、客户端连上来后服务器端生成的用于和客户端通信的Socket</p>
 <p><img src="/2020/08/25/BIO-NIO/1.png" alt="1"></p>
 <p>客户端</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Client</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//客户端socket</span></span><br><span class="line">            Socket socket = <span class="keyword">new</span> Socket(<span class="string">"127.0.0.1"</span>,<span class="number">8080</span>);</span><br><span class="line"></span><br><span class="line">            socket.getOutputStream().write(<span class="string">"111"</span>.getBytes());</span><br><span class="line">            socket.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>服务器端</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.ServerSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BIO</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//第一个socket是ServerSocket,用于监听</span></span><br><span class="line">            ServerSocket serverSocket = <span class="keyword">new</span> ServerSocket();</span><br><span class="line">            serverSocket.bind(<span class="keyword">new</span> InetSocketAddress(<span class="number">8080</span>));</span><br><span class="line">            System.out.println(<span class="string">"wait connect"</span>);</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">            这个第二个socket是当客户端连接后,返回一个和客户端通信的socket</span></span><br><span class="line"><span class="comment">            accept阻塞方法,监听到客户端连接上后会生成第三个socket</span></span><br><span class="line"><span class="comment">            */</span></span><br><span class="line">            Socket socket = serverSocket.accept();</span><br><span class="line">            </span><br><span class="line">            System.out.println(<span class="string">"connect success"</span>);</span><br><span class="line">            System.out.println(<span class="string">"wait data"</span>);</span><br><span class="line">            <span class="comment">//阻塞方法 read表示读了多少字节</span></span><br><span class="line">            <span class="keyword">int</span> read = socket.getInputStream().read(bytes);</span><br><span class="line">            System.out.println(<span class="string">"data success"</span>);</span><br><span class="line">            String content = <span class="keyword">new</span> String(bytes);</span><br><span class="line">            System.out.println(content);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.ServerSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BIO</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//第一个socket是ServerSocket,用于监听</span></span><br><span class="line">            ServerSocket serverSocket = <span class="keyword">new</span> ServerSocket();</span><br><span class="line">            serverSocket.bind(<span class="keyword">new</span> InetSocketAddress(<span class="number">8080</span>));</span><br><span class="line">            System.out.println(<span class="string">"wait connect"</span>);</span><br><span class="line">            <span class="comment">/*</span></span><br><span class="line"><span class="comment">            第二个socket是当客户端连接后,返回一个和客户端通信的socket</span></span><br><span class="line"><span class="comment">            accept阻塞方法,监听到客户端连接上后会生成socket</span></span><br><span class="line"><span class="comment">            */</span></span><br><span class="line">            Socket socket = serverSocket.accept();</span><br><span class="line">            </span><br><span class="line">            System.out.println(<span class="string">"connect success"</span>);</span><br><span class="line">            System.out.println(<span class="string">"wait data"</span>);</span><br><span class="line">            <span class="comment">//阻塞方法 read表示读了多少字节</span></span><br><span class="line">            <span class="keyword">int</span> read = socket.getInputStream().read(bytes);</span><br><span class="line">            System.out.println(<span class="string">"data success"</span>);</span><br><span class="line">            String content = <span class="keyword">new</span> String(bytes);</span><br><span class="line">            System.out.println(content);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>serverSocket的accept方法是阻塞方法，如果没有客户端连接，第一个的监听Socket就会一直等待，输出wait connect</p>
 <p>当执行用户方法的时候，用户Socket连接上来后accept返回第二个socket，从第二个socket里获取输入输出</p>
 <p>第二个socket的read是阻塞方法，如果客户端socket连接上后不执行 socket.getOutputStream().write(“111”.getBytes()); 那么服务端会一直阻塞</p>
 <p><strong>总结：用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法</strong></p>
-<p><strong>如果不考虑多线程的情况下BIO是没法并发的，只有当用于监听的serverSocket发现客户端连接后都新建一个线程去处理才能实现并发</strong></p>
-<p><strong>如果使用多线程，每来一个连接都创建一个线程，并且里面是阻塞的会很浪费资源</strong></p>
-<h1 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h1><p>new IO / Non blocking IO</p>
+<p><strong>多线程BIO:用于监听的serverSocket发现客户端连接后都新建一个线程去处理才能实现并发</strong></p>
+<p><strong>BIO问题：</strong></p>
+<p><strong>1.用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法</strong></p>
+<p><strong>2.多线程BIO里每一个客户端Socket连接客户端都要立刻开启一个处理线程，如果有1000万个用户连接，只有200万个是用户在工作，其他都没有read，结果是线程内存资源浪费+上下文切换</strong></p>
+<h1 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h1><p>new IO / Non－blocking IO</p>
 <p>NIO是对BIO的改进,BIO的阻塞的关键就是accept和read方法是阻塞方法</p>
-<p>NIO对其进行了重新实现</p>
-<p>服务器端</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.ServerSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"><span class="keyword">import</span> java.nio.ByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.ServerSocketChannel;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NIO</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">    <span class="keyword">static</span> List&lt;SocketChannel&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">static</span> ByteBuffer byteBuffer = ByteBuffer.allocate(<span class="number">512</span>);</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//ServerSocketChannel是监听Socket</span></span><br><span class="line">            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</span><br><span class="line">            serverSocketChannel.bind(<span class="keyword">new</span> InetSocketAddress(<span class="number">8080</span>));</span><br><span class="line">            <span class="comment">//设置非阻塞</span></span><br><span class="line">            serverSocketChannel.configureBlocking(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="comment">//SocketChannel是第二个socket,用于和用户socket通信</span></span><br><span class="line">                SocketChannel socketChannel = serverSocketChannel.accept();</span><br><span class="line">                <span class="keyword">if</span>(serverSocketChannel == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="comment">//没人连接</span></span><br><span class="line">                    Thread.sleep(<span class="number">500</span>);</span><br><span class="line">                    <span class="keyword">for</span>(SocketChannel client : list) &#123;</span><br><span class="line">                        client.read(byteBuffer);</span><br><span class="line">                        byteBuffer.flip();</span><br><span class="line">                        System.out.println(byteBuffer.toString());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">//设置非阻塞</span></span><br><span class="line">                    socketChannel.configureBlocking(<span class="keyword">false</span>);</span><br><span class="line">                    list.add(socketChannel);</span><br><span class="line">                    <span class="keyword">for</span>(SocketChannel client : list) &#123;</span><br><span class="line">                        client.read(byteBuffer);</span><br><span class="line">                        byteBuffer.flip();</span><br><span class="line">                        System.out.println(byteBuffer.toString());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ServerSocket变成了ServerSocketChannel，用于和用户通信的Socket变成了SocketChannel，用户Socket没变</p>
+<p>NIO对其进行了重新实现，将非阻塞accept read方法封装在里面</p>
+<h2 id="简单NIO思想"><a href="#简单NIO思想" class="headerlink" title="简单NIO思想"></a>简单NIO思想</h2><p>服务器端</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.InetSocketAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.ServerSocket;</span><br><span class="line"><span class="keyword">import</span> java.net.Socket;</span><br><span class="line"><span class="keyword">import</span> java.nio.ByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.ServerSocketChannel;</span><br><span class="line"><span class="keyword">import</span> java.nio.channels.SocketChannel;</span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NIO</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">byte</span>[] bytes = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>];</span><br><span class="line">    <span class="keyword">static</span> List&lt;SocketChannel&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">static</span> ByteBuffer byteBuffer = ByteBuffer.allocate(<span class="number">512</span>);<span class="comment">//Buffer组件</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">//ServerSocketChannel是监听Socket</span></span><br><span class="line">            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();</span><br><span class="line">            serverSocketChannel.bind(<span class="keyword">new</span> InetSocketAddress(<span class="number">8080</span>));</span><br><span class="line">            <span class="comment">//设置非阻塞</span></span><br><span class="line">            serverSocketChannel.configureBlocking(<span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">                <span class="comment">//SocketChannel是第二个socket,用于和用户socket通信</span></span><br><span class="line">                SocketChannel socketChannel = serverSocketChannel.accept();</span><br><span class="line">                <span class="keyword">if</span>(serverSocketChannel == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="comment">//没人连接</span></span><br><span class="line">                    Thread.sleep(<span class="number">500</span>);</span><br><span class="line">                    <span class="keyword">for</span>(SocketChannel client : list) &#123;<span class="comment">//相当于Selector</span></span><br><span class="line">                        client.read(byteBuffer);</span><br><span class="line">                        byteBuffer.flip();</span><br><span class="line">                        System.out.println(byteBuffer.toString());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="comment">//设置非阻塞</span></span><br><span class="line">                    socketChannel.configureBlocking(<span class="keyword">false</span>);</span><br><span class="line">                    list.add(socketChannel);</span><br><span class="line">                    <span class="keyword">for</span>(SocketChannel client : list) &#123;</span><br><span class="line">                        client.read(byteBuffer);</span><br><span class="line">                        byteBuffer.flip();</span><br><span class="line">                        System.out.println(byteBuffer.toString());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>NIO的逻辑:</p>
-<p>通过accept方法监听,方法改成了非阻塞,所以没有用户连接直接返回</p>
+<p>通过accept方法监听,方法改成了非阻塞</p>
 <p>需要将连接上的和用户Socket通信的SocketChannel记录下来,循环看是否有对服务器的输入,因为用户可能打开了连接后一直不输入或者输入的很慢,如果没有这个记录那么每次打开新的SocketChannel之前的就丢掉了</p>
 <p>没人连接的时候也要循环连接上的SocketChannel,因为如果一直没有人连接,并且之前的连接里有对服务器的输入了能及时看到</p>
-<p>这个for循环可以套在外面</p>
 <p><strong>上面这种单线程的实现for循环会造成资源浪费,当list里的socketChannel有千万个的时候,每次都要轮询一遍,很浪费时间</strong></p>
 <p>于是将轮询的方式改为了感知数据是否到达的方式,而Java是没法做到的,操作系统有这方面的函数</p>
 <p>于是Java服务器什么也不干,就等着数据,让操作系统去负责感知数据是否到达</p>
 <p><strong>NIO把之前服务器程序负责的轮询的操作交给了操作系统</strong></p>
 <p>windows操作系统的select()方法也是轮询,只有Linux系统的epoll()方法是感知到数据到达后通知相应的SocketChannel去read</p>
+<h2 id="NIO组件"><a href="#NIO组件" class="headerlink" title="NIO组件"></a>NIO组件</h2><p>Selector</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>BIO的阻塞体现在两个方面,一个是serverSocket.accept方法是阻塞方法,服务器端在有客户端连接前不能干别的事情,是阻塞的</p>
+<p>二是socket.read方法是阻塞的,在客户端通过outputStream流传输的方式输出前,用于和用户通信的Socket什么事情也不能干,是阻塞的</p>
+<p>流只能在一个方向上移动,包括inputStream outputStream</p>
 
       
 
@@ -435,6 +592,17 @@
 <p>Mapper接口：就是DAO接口</p>
 <p>Mapper映射器：用于编写SQL，并将SQL和实体类映射，采用XML和注解均可实现</p>
 <p><img src="/2020/08/22/Mybatis%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6/1.png" alt="1"></p>
+<p>1.创建SqlSessionFactoryBuilder对象，调用build(inputstream)方法读取并解析配置文件，返回SqlSessionFactory对象。SqlSessionFactory里有Configuration对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DefaultSqlSessionFactory</span> <span class="keyword">implements</span> <span class="title">SqlSessionFactory</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Configuration configuration;</span><br></pre></td></tr></table></figure>
+
+<p>解析配置文件信息的本质就是创建Configuration对象，将解析的xml数据封装到Configuration内部的属性中。Configuration对象的结构和xml配置文件的对象几乎相同。里面有properties（属性），settings（设置）mappers（映射器）等对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Configuration</span> </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> MapperRegistry mapperRegistry;</span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">final</span> Map&lt;String, MappedStatement&gt; mappedStatements;</span><br><span class="line">   	<span class="comment">//...</span></span><br></pre></td></tr></table></figure>
+
+<p>当解析mappers标签时，它会判断解析到的是mapper配置文件时，会再将对应配置文件中的增删改查标签一 一封装成MappedStatement对象，存入mappedStatements中。</p>
+<p>MappedStatement与Mapper配置文件中的一个SQL对应，主要用途是描述一条SQL语句。<br>一个select标签会在初始化配置文件时被解析封装成一个MappedStatement对象，然后存储在Configuration对象的mappedStatements属性中，mappedStatements 是一个HashMap，存储时key = namespace + id，value = 对应的MappedStatement对象。</p>
+<p>当判断解析到接口时，会创建此接口对应的MapperProxyFactory对象，存入mapperRegistry的knownMappers中，key = 接口的字节码对象，value = 此接口对应的MapperProxyFactory对象。</p>
+<p>2.通过SqlSessionFactory构造SqlSession<br>SqlSession中的两个最重要的参数，configuration与初始化时的相同，Executor为执行器。Executor也是一个接口，他有三个常用的实现类BatchExecutor（重用语句并执行批量更新），ReuseExecutor（重用预处理语句prepared statements），SimpleExecutor（普通的执行器，默认）。</p>
+<p>3.执行SqlSession.selectOne(namespace+id)方法时，会获取相应的MappedStatement，交给executor去执行<br>执行SqlSession.getMapper(Mapper接口的字节码对象)方法是，会去获取Configuration对象的MapperRegistry的Map&lt;Class<?>, MapperProxyFactory<?>&gt; knownMappers，拿到对应的MapperProxyFactory动态代理工厂，去生成相应的实例执行方法</p>
 
       
 
@@ -737,9 +905,10 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="AQS源码"><a href="#AQS源码" class="headerlink" title="AQS源码"></a>AQS源码</h2><h3 id="成员"><a href="#成员" class="headerlink" title="成员"></a>成员</h3><p>AQS有Node类型的head和tail，用来记录等待队列的头和尾</p>
+        <h2 id="AQS源码"><a href="#AQS源码" class="headerlink" title="AQS源码"></a>AQS源码</h2><h3 id="成员"><a href="#成员" class="headerlink" title="成员"></a>成员</h3><p>AQS维护了一个带头节点和尾节点的双向链表</p>
+<p>AQS有Node类型的head和tail，用来记录等待队列的头和尾</p>
 <p>volatile int state是锁状态，加锁成功则为1，重入+1 解锁则为0</p>
-<p>AQS的核心思想就是申请锁的线程CAS改变state</p>
+<p>AQS的核心思想就是申请锁的线程CAS改变state，改变成功获取锁</p>
 <p>失败后的线程需要加入到队列的尾部，一旦锁被释放了，AQS就把锁让给队首的第二个node</p>
 <p>当然在此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现</p>
         
@@ -871,81 +1040,6 @@
 
 
   
-    <article id="post-seckill项目" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/08/01/seckill%E9%A1%B9%E7%9B%AE/">seckill项目</a>
-    </h1>
-  
-
-        
-        <a href="/2020/08/01/seckill%E9%A1%B9%E7%9B%AE/" class="archive-article-date">
-  	<time datetime="2020-08-01T09:42:56.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-08-01</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h1 id="基础能力建设"><a href="#基础能力建设" class="headerlink" title="基础能力建设"></a>基础能力建设</h1><h2 id="项目创建"><a href="#项目创建" class="headerlink" title="项目创建"></a>项目创建</h2><p>项目的创建通过了Spring Boot项目的快速创建方式，从Spring官网选择Starter进行创建</p>
-<p><img src="/2020/08/01/seckill%E9%A1%B9%E7%9B%AE/1.png" alt="1"></p>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">项目</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/08/01/seckill%E9%A1%B9%E7%9B%AE/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
@@ -1043,7 +1137,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1051,27 +1145,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">AQS</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">面经</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">同步</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1079,7 +1153,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">面经</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">线程池</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">同步</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1091,15 +1181,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
+                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1115,11 +1209,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
+                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">事务</a>
+                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1131,11 +1225,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1143,7 +1237,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1151,11 +1245,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1163,7 +1253,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">数组</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1175,15 +1273,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">sync</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+                <a href="javascript:void(0)" class="js-tag color5">sync</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1191,11 +1285,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
+                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">错误处理</a>
+                <a href="javascript:void(0)" class="js-tag color3">无锁</a>
               </li>
              
               <li class="article-tag-list-item">
