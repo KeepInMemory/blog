@@ -764,3 +764,47 @@ public class SpringJuintTest {
 ```
 
 在<dependency>里导入Juint和Spring-test坐标后，用@RunWith指定SpringJuint4ClassRunner测试内核，用@ContextConfiguration指定.xml或者SpringConfiguration类作为核心配置文件，每次测试的时候用@Autowired注入Spring容器的对象，在底下创建测试方法测试即可
+
+#### 源码解析
+
+**IOC = 工厂模式 + 反射**
+
+##### BeanFactory
+
+ApplicationContext 继承自 BeanFactory，但是它不应该被理解为 BeanFactory  的实现类，而是说其内部持有一个实例化的 BeanFactory（DefaultListableBeanFactory）。以后所有的  BeanFactory 相关的操作其实是委托给这个实例来处理的。
+
+**1.初始化BeanFactory（DefaultListableBeanFactory），因为在众多BeanFactory中功能最全**
+
+**2.读取配置文件，解析成一个个 BeanDefinition，放到BeanFactory的beanDefinitionMap<beanName,beanDefinition>中。这里的beanName实际是beanId**
+
+##### BeanDefinition
+
+BeanDefinition的很多属性和方法都很熟悉，例如类名、scope、属性、构造函数参数列表、依赖的bean、是否是单例类、是否是懒加载等，其实就是将Bean的定义信息存储到这个BeanDefinition相应的属性中，后面对Bean的操作就直接对BeanDefinition进行，例如拿到这个BeanDefinition后，可以根据里面的类名、构造函数、构造函数参数，使用反射进行对象创建。
+
+**3.调用各个 BeanFactoryPostProcessor后置处理器的postProcessBeanFactory(factory) 方法，可以管理、修改bean工厂内的beanDefinition数据**
+
+**4.BeanFactory利用beanDefinition使用反射创建Bean实例**
+
+**5.属性填充**
+
+**6.如果Bean实现了BeanNameAware接口，调用setBeanName方法，传入Bean的名字**
+
+**7.如果Bean实现了BeanClassLoaderAware接口，调用setBeanClassLoader方法，传入ClassLoader实例**
+
+**8.如果实现了其他Aware接口就调用相应的方法**
+
+**9.调用BeanPostProcessor后置处理器的postProcessBeforeInitialization方法**
+
+**10.如果Bean实现了InitializingBean接口，调用afterPropertiesSet方法**
+
+**11.如果Bean配置了init-method方法，调用相应的方法**
+
+**12.调用BeanPostProcessor后置处理器的postProcessAfterInitialization方法**
+
+**13.将Bean添加到单例池中SingletonObjects<beanName,bean>**
+
+**14.ApplicationContext.getBean(beanName)从单例池中获取对应的Bean**
+
+**15.销毁Bean，如果Bean实现了DisposableBean接口，调用destory方法**
+
+**16.销毁Bean，如果Bean配置了destory-method方法，调用相应的方法**
