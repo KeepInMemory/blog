@@ -21,7 +21,7 @@ AQS的核心思想就是申请锁的线程CAS改变state，改变成功获取锁
 
 
 
-当然在此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现
+此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现
 
 <!--more-->
 
@@ -99,7 +99,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
     abstract static class Sync extends AbstractQueuedSynchronizer {
 ```
 
-ReentrantLock内部有AQS的实现Sync对象，又在Sync的基础上实现了子类公平锁和非公平锁
+ReentrantLock内部组合了一个AQS的实现Sync对象，又在Sync的基础上实现了子类公平锁和非公平锁
 
 ```java
 static final class NonfairSync extends Sync
@@ -205,6 +205,23 @@ hasQueuedPredecessors方法判断队列是否被初始化（如果没有初始�
 
 ![2](AQS源码分析/2.png)
 
-如果是公平锁就乖乖走正常加锁流程，无一例外
+公平锁加锁逻辑：
 
-如果是非公平锁，无脑CAS设置State锁状态，去尝试抢占一次，失败就走正常加锁流程
+1. 调用 acquire 方法，将线程放入同步队列中进行等待
+2. 线程在同步队列中成功获取锁，则将自己设为持锁线程后返回
+3. 若同步状态不为0，且当前线程为持锁线程，则执行重入逻辑
+
+非公平锁加锁逻辑：
+
+1. 调用 compareAndSetState 方法抢占式加锁，加锁成功则将自己设为持锁线程，并返回
+2. 若加锁失败，则调用 acquire 方法，将线程置于同步队列尾部进行等待
+3. 线程在同步队列中成功获取锁，则将自己设为持锁线程后返回
+4. 若同步状态不为0，且当前线程为持锁线程，则执行重入逻辑
+
+公平锁和非公平锁的实现区别：
+
+1.lock方法：公平锁执行acquire加锁逻辑，非公平锁先CAS抢占式加锁，加锁成功则将自己设为持锁线程返回，抢占失败再执行acquire
+
+2.acquire方法：两者都是调用tryAcquire方法加锁，加锁失败会进行入队park操作
+
+3.tryAcquire方法：公平锁使用hasQueuedPredecessors方法判断是否有其他线程比当前线程在同步队列中等待的时间更长，如果有则不加锁，让前面的先加锁。如果没有比自己靠前的线程，则CAS抢占式加锁，加锁失败判断是不是重入。非公平锁如果锁为自由状态，CAS去抢占式加锁，加锁失败判断是不是重入。

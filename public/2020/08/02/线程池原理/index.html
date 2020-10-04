@@ -8,19 +8,19 @@
   <link rel="dns-prefetch" href="http://KeepInMemory.github.io">
   <title>线程池原理 | HanBlog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="ThreadPollExecutor线程池参数12345678public ThreadPoolExecutor(int corePoolSize,                          int maximumPoolSize,                          long keepAliveTime,                          TimeUnit">
+  <meta name="description" content="ThreadPollExecutor线程池的类型Executors.newFixedThreadPool()12345public static ExecutorService newFixedThreadPool(int nThreads) &amp;#123;    return new ThreadPoolExecutor(nThreads, nThreads,">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线程池原理">
 <meta property="og:url" content="http://keepinmemory.github.io/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/index.html">
 <meta property="og:site_name" content="HanBlog">
-<meta property="og:description" content="ThreadPollExecutor线程池参数12345678public ThreadPoolExecutor(int corePoolSize,                          int maximumPoolSize,                          long keepAliveTime,                          TimeUnit">
+<meta property="og:description" content="ThreadPollExecutor线程池的类型Executors.newFixedThreadPool()12345public static ExecutorService newFixedThreadPool(int nThreads) &amp;#123;    return new ThreadPoolExecutor(nThreads, nThreads,">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/1.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/2.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/4.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/3.png">
 <meta property="article:published_time" content="2020-08-02T02:44:11.000Z">
-<meta property="article:modified_time" content="2020-08-29T06:58:48.047Z">
+<meta property="article:modified_time" content="2020-09-29T11:25:24.984Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="线程">
 <meta name="twitter:card" content="summary">
@@ -178,7 +178,23 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="ThreadPollExecutor"><a href="#ThreadPollExecutor" class="headerlink" title="ThreadPollExecutor"></a>ThreadPollExecutor</h2><h3 id="线程池参数"><a href="#线程池参数" class="headerlink" title="线程池参数"></a>线程池参数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                          TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                          BlockingQueue&lt;Runnable&gt; workQueue)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,</span><br><span class="line">         Executors.defaultThreadFactory(), defaultHandler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        <h2 id="ThreadPollExecutor"><a href="#ThreadPollExecutor" class="headerlink" title="ThreadPollExecutor"></a>ThreadPollExecutor</h2><h3 id="线程池的类型"><a href="#线程池的类型" class="headerlink" title="线程池的类型"></a>线程池的类型</h3><h4 id="Executors-newFixedThreadPool"><a href="#Executors-newFixedThreadPool" class="headerlink" title="Executors.newFixedThreadPool()"></a>Executors.newFixedThreadPool()</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newFixedThreadPool</span><span class="params">(<span class="keyword">int</span> nThreads)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>传入核心线程数，最大线程数为核心线程数，核心线程空闲到时间不会回收，队列是LinkedBlokingQueue是无界队列，等待的线程可以是Integer.MAX_VALUE，可能会造成OOM</p>
+<p>特点：只有这些核心线程服务，不会创建多余的非核心线程，适合控制最大并发数的场景</p>
+<h4 id="Executors-newSingleThreadPool"><a href="#Executors-newSingleThreadPool" class="headerlink" title="Executors.newSingleThreadPool()"></a>Executors.newSingleThreadPool()</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newSingleThreadExecutor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> FinalizableDelegatedExecutorService</span><br><span class="line">        (<span class="keyword">new</span> ThreadPoolExecutor(<span class="number">1</span>, <span class="number">1</span>,</span><br><span class="line">                                <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                                <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>核心线程数是1，最大线程数是核心线程数，核心线程空闲到时间不会回收，队列是LinkedBlokingQueue是无界队列，等待的线程可以是Integer.MAX_VALUE，可能会造成OOM</p>
+<p>特点：保证所有任务按照指定FIFO顺序在一个线程中执行</p>
+<h4 id="Executors-newCachedThreadPool"><a href="#Executors-newCachedThreadPool" class="headerlink" title="Executors.newCachedThreadPool()"></a>Executors.newCachedThreadPool()</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newCachedThreadPool</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE,</span><br><span class="line">                                  <span class="number">60L</span>, TimeUnit.SECONDS,</span><br><span class="line">                                  <span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>核心线程数是0，最大线程数是Integer.MAX_VALUE，可以创建的线程数是Integer.MAX_VALUE，可能会造成OOM，线程的存活时间是60s，队列是SynchronousQueue是不存储元素的阻塞队列</p>
+<p>特点：任何线程任务到来都可以立即执行，不需要等待。线程可以无限创建，有60s的空闲后存活时间。适合执行大量、耗时少的线程任务</p>
+<h4 id="Executors-newScheduledThreadPool"><a href="#Executors-newScheduledThreadPool" class="headerlink" title="Executors.newScheduledThreadPool()"></a>Executors.newScheduledThreadPool()</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ScheduledExecutorService <span class="title">newScheduledThreadPool</span><span class="params">(<span class="keyword">int</span> corePoolSize)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ScheduledThreadPoolExecutor(corePoolSize);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ScheduledThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(corePoolSize, Integer.MAX_VALUE, <span class="number">0</span>, NANOSECONDS,</span><br><span class="line">          <span class="keyword">new</span> DelayedWorkQueue());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>传入核心线程数，最大线程数是Integer.MAX_VALUE，存活时间是0纳秒，也就是空闲立即回收</p>
+<p>特点：执行定时/周期性任务</p>
+<h3 id="线程池参数"><a href="#线程池参数" class="headerlink" title="线程池参数"></a>线程池参数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                          TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                          BlockingQueue&lt;Runnable&gt; workQueue)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,</span><br><span class="line">         Executors.defaultThreadFactory(), defaultHandler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>从ThreadPollExecutor的构造函数可以看见参数有，corePoolSize核心线程数、maximumPoolSize最大线程数、keepAliveTime存活时间、unit时间单位、workQueue等待队列、ThreadFactory线程工厂、Handler饱和策略</p>
 <a id="more"></a>
@@ -186,8 +202,8 @@
 <h4 id="Handler饱和策略"><a href="#Handler饱和策略" class="headerlink" title="Handler饱和策略"></a>Handler饱和策略</h4><p>当线程池的任务队列已满并且线程数目达到maximumPoolSize时，对于新加的任务一般会采取拒绝策略，通常有以下四种策略：</p>
 <ol>
 <li>AbortPolicy：直接抛出异常，这是默认策略；</li>
-<li>CallerRunsPolicy：用调用者所在的线程来执行任务；</li>
-<li>DiscardOldestPolicy：丢弃阻塞队列中靠最前的任务，并执行当前任务；</li>
+<li>CallerRunsPolicy：被拒绝的任务在主线程中运行，让主线程直接调用run方法，而不是开启其他线程。所以主线程就被阻塞了，别的任务只能在被拒绝的任务执行完之后才会继续被提交到线程池执行，此时主线程不接受任何任务过来执行；</li>
+<li>DiscardOldestPolicy：丢弃阻塞队列中最早的任务，并执行当前任务；</li>
 <li>DiscardPolicy：直接丢弃任务；</li>
 </ol>
 <h3 id="线程池状态"><a href="#线程池状态" class="headerlink" title="线程池状态"></a>线程池状态</h3><p>Running：能接收新任务，以及处理已经添加的任务</p>
@@ -233,8 +249,8 @@
 
 <p>processWorkerExit方法的作用主要是对worker对象的移除，如果当前运行的Worker数比当前所需要的Worker数少的话，那么就会调用addWorker，添加新的Worker，也就是新开启线程继续处理任务。</p>
 <h3 id="线程池的复用机制"><a href="#线程池的复用机制" class="headerlink" title="线程池的复用机制"></a>线程池的复用机制</h3><p><img src="/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/3.png" alt="3"></p>
-<p>当通过execute提交了一个任务后，会在execute中判断四种情况，1和3情况都需要addWorker。如果一开始提交了任务放到了队列里，就等着别的Worker来拿我的任务，如果线程数小于核心线程数，或者队列满了但仍小于最大线程数，这个时候需要addWorker()</p>
-<p>addWorker会创建一个Worker对象，Worker对象有两个参数，一个是FirstTask表示第一个要执行的任务，二是Thread表示当前线程，Worker对象实现了Runnable接口，当在addWorker中启动Worker内的线程（Worker.thread.start()）时，会调用Worker里的run方法</p>
+<p>当通过execute提交了一个任务后，会在execute中判断四种情况，如果线程数小于核心线程数，或者队列满了但仍小于最大线程数，这个时候需要addWorker()。如果一开始提交了任务放到了队列里，就等着别的Worker来拿我的任务去执行</p>
+<p>addWorker会创建一个Worker对象，Worker对象有两个参数，一个是FirstTask表示第一个要执行的任务，二是Thread表示当前线程，Worker对象实现了Runnable接口，当在addWorker中启动Worker内的关联线程（Worker.thread.start()）时，会调用Worker里的run方法</p>
 <p>Worker的run方法会调用runWorker方法，</p>
 <p>runWorker方法会循环执行task，先判断firstTask为不为空，不为空执行firstTask，为空task从队列里拿</p>
 <p>拿不到task执行processWorkerExit，清除掉该Worker，判断如果当前运行的Worker数比当前所需要的Worker数少的话，那么就会调用addWorker(null,false)，添加新的Worker，也就是新开启线程继续处理任务</p>
@@ -489,6 +505,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">IO</a>
               </li>
              
@@ -501,19 +521,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">同步</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -525,15 +541,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -541,11 +553,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Mybatis</a>
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Mybatis</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -557,7 +573,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
+                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -565,11 +581,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">事务</a>
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
+                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -589,19 +605,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">反射</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -609,11 +617,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">数组</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">反射</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -622,6 +638,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">数组</a>
               </li>
              
               <li class="article-tag-list-item">

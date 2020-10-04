@@ -87,7 +87,7 @@ serverSocket的accept方法是阻塞方法，如果没有客户端连接，第�
 
 **BIO问题：**
 
-**1.用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法**
+**1.用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法，阻塞效率低**
 
 **2.多线程BIO里每一个客户端Socket连接客户端都要立刻开启一个处理线程，如果有1000万个用户连接，只有200万个是用户在工作，其他都没有read，结果是线程内存资源浪费+上下文切换**
 
@@ -178,12 +178,6 @@ NIO的逻辑:
 
 windows操作系统的select()方法也是轮询,只有Linux系统的epoll()方法是感知到数据到达后通知相应的SocketChannel去read
 
-## NIO组件
-
-Selector
-
-
-
 # 总结
 
 BIO的阻塞体现在两个方面,一个是serverSocket.accept方法是阻塞方法,服务器端在有客户端连接前不能干别的事情,是阻塞的
@@ -191,3 +185,17 @@ BIO的阻塞体现在两个方面,一个是serverSocket.accept方法是阻塞方
 二是socket.read方法是阻塞的,在客户端通过outputStream流传输的方式输出前,用于和用户通信的Socket什么事情也不能干,是阻塞的
 
 流只能在一个方向上移动,包括inputStream outputStream
+
+
+
+NIO是非阻塞IO，它有几个部分，包括通道、缓冲区、选择器。
+
+通道是对BIO的流的模拟，通过通道读取写入数据，流是单向的而通道是双向的。对应BIO的ServerSocket和产生的socket，NIO是ServerSocketChannel和SocketChannel，通过设置两个Channel的configureBlocking(false)非阻塞，可以将accept和read过程变为非阻塞的。当Channel上的事件到达时，确定了是连接请求已经过来了，此时再调用accept方法创建SocketChannel；当Channel上的事件到达时，确定了是写请求，此时再调用read方法去读取Buffer；当Channel上的事件到达时，确定了是读请求，此时再调用write方法将Buffer里的数据通过Channel写到Client里
+
+从通道中读取和写入的数据都要先放到缓冲区中，缓冲区提供了对数据的结构化访问，buffer.flip()转换读写模式
+
+ 使用一个选择器 Selector 通过轮询的方式去监听多个通道 Channel 上的事件，从而让一个线程就可以处理多个事件。通过配置监听的通道 Channel 为非阻塞，当 Channel 上的 IO 事件还未到达时，就不会进入阻塞状态一直等待，而是继续轮询其它 Channel，找到 IO 事件已经到达的 Channel 执行。
+
+NIO的过程：
+
+首先创建选择器，将通道注册在选择器上，选择器会监听这几个通道，使用 select() 来监听到达的事件，它会一直阻塞直到有至少一个事件到达，最后获取到达的请求进行处理，在一个循环里接着去select()监听事件。

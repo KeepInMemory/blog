@@ -150,6 +150,209 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Spring依赖注入" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/10/04/Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/">Spring依赖注入</a>
+    </h1>
+  
+
+        
+        <a href="/2020/10/04/Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/" class="archive-article-date">
+  	<time datetime="2020-10-04T08:12:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-10-04</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>如果类A的功能实现需要借助于类B，那么类B是类A的依赖，如果在类A的内部去实例化类B，两者之间会出现较高的耦合度，一旦类B出现了问题，类A也需要进行改造，程序难维护。要解决这个问题就要把A类对B类的控制权抽离出来，交给第三方去做，把控制权反转给第三方，叫做控制反转</p>
+<p>依赖注入是控制反转的典型实现方式，由第三方来控制依赖，把他通过构造函数、属性或者工厂模式等方法，注入到类A内，这样就实现了类A和类B的解耦</p>
+<h3 id="依赖注入的方式"><a href="#依赖注入的方式" class="headerlink" title="依赖注入的方式"></a>依赖注入的方式</h3><h4 id="XML方式"><a href="#XML方式" class="headerlink" title="XML方式"></a>XML方式</h4><p>xml的bean标签申明对象，使用xml的property标签set方法注入，constructor-arg标签构造方法注入，factory-method标签工厂方法注入</p>
+<h5 id="构造方法注入"><a href="#构造方法注入" class="headerlink" title="构造方法注入"></a>构造方法注入</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> <span class="keyword">implements</span> <span class="title">IUserService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> IUserDao userDao;</span><br><span class="line">	<span class="comment">// 构造注入</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">UserService</span><span class="params">(IUserDao userDao)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.userDao = userDao;</span><br><span class="line">	&#125;	</span><br><span class="line">	<span class="comment">// 注入后才能够使用</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loginUser</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		userDao.loginUser();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userService"</span> <span class="attr">class</span>=<span class="string">"com.lyu.spring.service.impl.UserService"</span>&gt;</span></span><br><span class="line">	// 构造属性注入bean</span><br><span class="line">	<span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">ref</span>=<span class="string">"userDaoJdbc"</span>&gt;</span><span class="tag">&lt;/<span class="name">constructor-arg</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDaoJdbc"</span> <span class="attr">class</span>=<span class="string">"com.lyu.spring.dao.impl.UserDaoJdbc"</span>&gt;</span><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="set方法注入"><a href="#set方法注入" class="headerlink" title="set方法注入"></a>set方法注入</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> <span class="keyword">implements</span> <span class="title">IUserService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> IUserDao userDao;</span><br><span class="line">	<span class="comment">// set注入,set+配置中name属性，首字母大写</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">setUserDao</span><span class="params">(IUserDao userDao)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.userDao = userDao;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">// 需加入空构造方法</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">UserService</span><span class="params">( )</span> </span>&#123;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loginUser</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		userDao.loginUser();</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>xml</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userService"</span> <span class="attr">class</span>=<span class="string">"com.lyu.spring.service.impl.UserService"</span>&gt;</span></span><br><span class="line">	// name属性注入bean，通过反射实现注入</span><br><span class="line">	<span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">"userDao"</span> <span class="attr">ref</span>=<span class="string">"userDaoMyBatis"</span>&gt;</span><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"userDaoJdbc"</span> <span class="attr">class</span>=<span class="string">"com.lyu.spring.dao.impl.UserDaoJdbc"</span>&gt;</span><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="工厂方法注入"><a href="#工厂方法注入" class="headerlink" title="工厂方法注入"></a>工厂方法注入</h5><p>工厂方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DaoFactory</span> </span>&#123;  </span><br><span class="line">    <span class="comment">//实例工厂  </span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> FactoryDao <span class="title">getFactoryDaoImpl</span><span class="params">()</span></span>&#123;  </span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> FactoryDaoImpl();  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要注入的类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SpringAction</span> </span>&#123;  </span><br><span class="line">    <span class="comment">//注入对象  </span></span><br><span class="line">    <span class="keyword">private</span> FactoryDao factoryDao;  </span><br><span class="line">      </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">factoryOk</span><span class="params">()</span></span>&#123;  </span><br><span class="line">        factoryDao.saveFactory();  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFactoryDao</span><span class="params">(FactoryDao factoryDao)</span> </span>&#123;  </span><br><span class="line">        <span class="keyword">this</span>.factoryDao = factoryDao;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>xml</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;!--配置bean,配置后该类由spring管理--&gt;  </span><br><span class="line">    &lt;bean name=<span class="string">"springAction"</span> <span class="class"><span class="keyword">class</span></span>=<span class="string">"com.bless.springdemo.action.SpringAction"</span>&gt;  </span><br><span class="line">        &lt;!--(<span class="number">4</span>)使用实例工厂的方法注入对象,对应下面的配置文件(<span class="number">4</span>)--&gt;  </span><br><span class="line">        &lt;property name="factoryDao" ref="factoryDao"&gt;&lt;/property&gt;  </span><br><span class="line">    &lt;/bean&gt;  </span><br><span class="line">      </span><br><span class="line">    &lt;!--(<span class="number">4</span>)此处获取对象的方式是从工厂类中获取实例方法--&gt;  </span><br><span class="line">    &lt;bean name="daoFactory" class="com.bless.springdemo.factory.DaoFactory"&gt;&lt;/bean&gt;  </span><br><span class="line">    &lt;bean name="factoryDao" factory-bean="daoFactory" factory-method="getFactoryDaoImpl"&gt;&lt;/bean&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="注解方式"><a href="#注解方式" class="headerlink" title="注解方式"></a>注解方式</h4><p>注解方式声明Bean使用的是@Component、@Controller、@Service、@Repository</p>
+<p>注解方式的注入采用的是@Resource、@Autowired</p>
+<p>@Resource：先按名称来找，找不到按类型来找</p>
+<p>@Autowired：先按类型来找，找不到按名称来找</p>
+<h5 id="构造方法注入-1"><a href="#构造方法注入-1" class="headerlink" title="构造方法注入"></a>构造方法注入</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> DependencyA dependencyA;</span><br><span class="line"><span class="keyword">private</span> DependencyB dependencyB;</span><br><span class="line"><span class="keyword">private</span> DependencyC dependencyC;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">DI</span><span class="params">(DependencyA dependencyA, DependencyB dependencyB, DependencyC dependencyC)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.dependencyA = dependencyA;</span><br><span class="line">    <span class="keyword">this</span>.dependencyB = dependencyB;</span><br><span class="line">    <span class="keyword">this</span>.dependencyC = dependencyC;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="set方法注入-1"><a href="#set方法注入-1" class="headerlink" title="set方法注入"></a>set方法注入</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> DependencyA dependencyA;</span><br><span class="line"><span class="keyword">private</span> DependencyB dependencyB;</span><br><span class="line"><span class="keyword">private</span> DependencyC dependencyC;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDependencyA</span><span class="params">(DependencyA dependencyA)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.dependencyA = dependencyA;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDependencyB</span><span class="params">(DependencyB dependencyB)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.dependencyB = dependencyB;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setDependencyC</span><span class="params">(DependencyC dependencyC)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.dependencyC = dependencyC;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="成员变量注入"><a href="#成员变量注入" class="headerlink" title="成员变量注入"></a>成员变量注入</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> DependencyA dependencyA;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> DependencyB dependencyB;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> DependencyC dependencyC;</span><br></pre></td></tr></table></figure>
+
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color2">spring</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/10/04/Spring%E4%BE%9D%E8%B5%96%E6%B3%A8%E5%85%A5/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
+    <article id="post-redis分布式锁" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/09/23/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">redis分布式锁</a>
+    </h1>
+  
+
+        
+        <a href="/2020/09/23/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="archive-article-date">
+  	<time datetime="2020-09-23T10:30:25.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-09-23</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>redis分布式锁可以通过setnx （set if not extist）来实现</p>
+<p>首先考虑的实现是在redis业务代码前加setnx设置一把锁，执行完业务代码后释放掉</p>
+<p>对应的代码是</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Boolean result = redisTemplate.opsForValue().setIfAbsent(<span class="string">"lockKey"</span>,<span class="string">"lockValue"</span>);</span><br><span class="line"><span class="comment">//业务代码</span></span><br><span class="line">redisTemplate.delete(<span class="string">"lockKey"</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在分布式的情况下，客户请求通过nginx分发到不同的服务器上，不同服务器最终会请求一个Redis服务器，redis是单线程的，各服务器的请求会排队进行处理，确保了隔离性</p>
+<p>通过判断result获取锁的情况可以判断是否继续执行</p>
+<p><strong>问题：如果在执行业务代码的时候抛异常了，那么delete不会得到执行</strong></p>
+<p>于是考虑将加锁和解锁操作放在try finally里，确保能够释放锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">	Boolean result = redisTemplate.opsForValue().setIfAbsent(<span class="string">"lockKey"</span>,<span class="string">"lockValue"</span>);</span><br><span class="line">	<span class="comment">//业务代码</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">finally</span>&#123;</span><br><span class="line">	redisTemplate.delete(<span class="string">"lockKey"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题：如果在加锁后机器宕机了，那么这把锁永远不会释放掉</strong></p>
+<p>考虑给setnx设置一个过期时间</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">	Boolean result = redisTemplate.opsForValue().setIfAbsent(<span class="string">"lockKey"</span>,<span class="string">"lockValue"</span>);</span><br><span class="line">	redisTemplate.expire(<span class="string">"lockKey"</span>,<span class="number">10</span>,TimeUnit.SECONDS);</span><br><span class="line">	<span class="comment">//业务代码</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">finally</span>&#123;</span><br><span class="line">	redisTemplate.delete(<span class="string">"lockKey"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>设置了10秒的过期时间，如果机器宕机了只能有10秒的空档期</p>
+<p><strong>问题：如果A服务器执行了15秒才能执行完业务逻辑，在10秒的时候锁会自动过期，B服务器加锁成功，B正在执行，A执行完毕后把锁删除掉了，C服务器加锁成功，B执行完毕把锁释放掉了。这样导致锁和没设置一样</strong></p>
+<p>考虑只能由自己删除掉自己的锁</p>
+<p>给锁设置的value用线程自己的唯一标识，finally里判断一下，如果不是自己的锁就不删除</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">String clientId = UUID.randomUUID().toString();</span><br><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">	Boolean result = redisTemplate.opsForValue().setIfAbsent(<span class="string">"lockKey"</span>,<span class="string">"lockValue"</span>);</span><br><span class="line">	redisTemplate.expire(<span class="string">"lockKey"</span>,<span class="number">10</span>,TimeUnit.SECONDS);</span><br><span class="line">	<span class="comment">//业务代码</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">finally</span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(clientId.equals(redisTemplate.opsForValue().get(<span class="string">"lockKey"</span>))) &#123;</span><br><span class="line">		redisTemplate.delete(<span class="string">"lockKey"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>问题：当锁时间不够用，过期的时候仍然会有Bug，但是不严重了</strong></p>
+<p>考虑给锁续命</p>
+<p>线程在执行业务代码的时候，开启一个分线程执行一个定时任务，每隔一段时间（30/3=10s）检查一下这个线程加的锁是否还在，如果不再了说明自己解锁了，如果还在就给这把锁重新设置过期时间30s</p>
+<p>这个就是redisson的底层实现，通过lua脚本，在Java方法里构造lua字符串发送给redis，redis会原子性的保证lua脚本被执行，中间出现了错误会回滚</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">redis</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/09/23/redis%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-Spring循环依赖" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -336,7 +539,7 @@
 <p><strong>总结：用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法</strong></p>
 <p><strong>多线程BIO:用于监听的serverSocket发现客户端连接后都新建一个线程去处理才能实现并发</strong></p>
 <p><strong>BIO问题：</strong></p>
-<p><strong>1.用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法</strong></p>
+<p><strong>1.用于监听的Socekt的accept方法，和用于和用户通信的socket的inputStream().read方法都是阻塞方法，阻塞效率低</strong></p>
 <p><strong>2.多线程BIO里每一个客户端Socket连接客户端都要立刻开启一个处理线程，如果有1000万个用户连接，只有200万个是用户在工作，其他都没有read，结果是线程内存资源浪费+上下文切换</strong></p>
 <h1 id="NIO"><a href="#NIO" class="headerlink" title="NIO"></a>NIO</h1><p>new IO / Non－blocking IO</p>
 <p>NIO是对BIO的改进,BIO的阻塞的关键就是accept和read方法是阻塞方法</p>
@@ -354,10 +557,15 @@
 <p>于是Java服务器什么也不干,就等着数据,让操作系统去负责感知数据是否到达</p>
 <p><strong>NIO把之前服务器程序负责的轮询的操作交给了操作系统</strong></p>
 <p>windows操作系统的select()方法也是轮询,只有Linux系统的epoll()方法是感知到数据到达后通知相应的SocketChannel去read</p>
-<h2 id="NIO组件"><a href="#NIO组件" class="headerlink" title="NIO组件"></a>NIO组件</h2><p>Selector</p>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>BIO的阻塞体现在两个方面,一个是serverSocket.accept方法是阻塞方法,服务器端在有客户端连接前不能干别的事情,是阻塞的</p>
 <p>二是socket.read方法是阻塞的,在客户端通过outputStream流传输的方式输出前,用于和用户通信的Socket什么事情也不能干,是阻塞的</p>
 <p>流只能在一个方向上移动,包括inputStream outputStream</p>
+<p>NIO是非阻塞IO，它有几个部分，包括通道、缓冲区、选择器。</p>
+<p>通道是对BIO的流的模拟，通过通道读取写入数据，流是单向的而通道是双向的。对应BIO的ServerSocket和产生的socket，NIO是ServerSocketChannel和SocketChannel，通过设置两个Channel的configureBlocking(false)非阻塞，可以将accept和read过程变为非阻塞的。当Channel上的事件到达时，确定了是连接请求已经过来了，此时再调用accept方法创建SocketChannel；当Channel上的事件到达时，确定了是写请求，此时再调用read方法去读取Buffer；当Channel上的事件到达时，确定了是读请求，此时再调用write方法将Buffer里的数据通过Channel写到Client里</p>
+<p>从通道中读取和写入的数据都要先放到缓冲区中，缓冲区提供了对数据的结构化访问，buffer.flip()转换读写模式</p>
+<p> 使用一个选择器 Selector 通过轮询的方式去监听多个通道 Channel 上的事件，从而让一个线程就可以处理多个事件。通过配置监听的通道 Channel 为非阻塞，当 Channel 上的 IO 事件还未到达时，就不会进入阻塞状态一直等待，而是继续轮询其它 Channel，找到 IO 事件已经到达的 Channel 执行。</p>
+<p>NIO的过程：</p>
+<p>首先创建选择器，将通道注册在选择器上，选择器会监听这几个通道，使用 select() 来监听到达的事件，它会一直阻塞直到有至少一个事件到达，最后获取到达的请求进行处理，在一个循环里接着去select()监听事件。</p>
 
       
 
@@ -772,7 +980,14 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>MVCC主要为了提高并发的读写性能，不用加锁就能让多个事务并发读写</p>
+        <p>在SQL标准中，RR是无法避免幻读问题的，但是InnoDB基于MVCC实现的RR避免了幻读问题，但是RC无法避免不可重复读、幻读问题</p>
+<p>MVCC最大的优点是读不加锁，因此读写不冲突，并发性能好</p>
+<p>按照是否加锁，MySQL的读可以分为两种：</p>
+<p>一种是非加锁读，也称作快照读、一致性读，使用普通的select语句，这种情况下使用MVCC避免了脏读、不可重复读、幻读，保证了隔离性。</p>
+<p>另一种是加锁读</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#共享锁读取</span><br><span class="line">select...lock in share mode</span><br><span class="line">#排它锁读取</span><br><span class="line">select...for update</span><br></pre></td></tr></table></figure>
+
+<p>加锁读在查询时会对查询的数据加锁（共享锁或排它锁）。由于锁的特性，当某事务对数据进行加锁读后，其他事务无法对数据进行写操作，因此可以避免脏读和不可重复读。而避免幻读，则需要通过next-key lock。next-key lock是行锁的一种，实现相当于record lock(记录锁) + gap lock(间隙锁）；其特点是不仅会锁住记录本身(record lock的功能)，还会锁定一个范围(gap lock的功能)。因此，加锁读同样可以避免脏读、不可重复读和幻读，保证隔离性</p>
         
       
 
@@ -900,161 +1115,6 @@
 
 
   
-    <article id="post-AQS源码分析" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/08/03/AQS%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">AQS源码分析</a>
-    </h1>
-  
-
-        
-        <a href="/2020/08/03/AQS%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="archive-article-date">
-  	<time datetime="2020-08-03T07:02:01.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-08-03</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="AQS源码"><a href="#AQS源码" class="headerlink" title="AQS源码"></a>AQS源码</h2><h3 id="成员"><a href="#成员" class="headerlink" title="成员"></a>成员</h3><p>AQS维护了一个带头节点和尾节点的双向链表</p>
-<p>AQS有Node类型的head和tail，用来记录等待队列的头和尾</p>
-<p>volatile int state是锁状态，加锁成功则为1，重入+1 解锁则为0</p>
-<p>AQS的核心思想就是申请锁的线程CAS改变state，改变成功获取锁</p>
-<p>失败后的线程需要加入到队列的尾部，一旦锁被释放了，AQS就把锁让给队首的第二个node</p>
-<p>当然在此基础上有公平锁/非公平锁、排他锁（Reentrantlock）/共享锁（CountDownLatch/Semaphore）多种实现</p>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color4">AQS</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/08/03/AQS%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-线程池原理" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/">线程池原理</a>
-    </h1>
-  
-
-        
-        <a href="/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/" class="archive-article-date">
-  	<time datetime="2020-08-02T02:44:11.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-08-02</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="ThreadPollExecutor"><a href="#ThreadPollExecutor" class="headerlink" title="ThreadPollExecutor"></a>ThreadPollExecutor</h2><h3 id="线程池参数"><a href="#线程池参数" class="headerlink" title="线程池参数"></a>线程池参数</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">int</span> maximumPoolSize,</span></span></span><br><span class="line"><span class="function"><span class="params">                          <span class="keyword">long</span> keepAliveTime,</span></span></span><br><span class="line"><span class="function"><span class="params">                          TimeUnit unit,</span></span></span><br><span class="line"><span class="function"><span class="params">                          BlockingQueue&lt;Runnable&gt; workQueue)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,</span><br><span class="line">         Executors.defaultThreadFactory(), defaultHandler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>从ThreadPollExecutor的构造函数可以看见参数有，corePoolSize核心线程数、maximumPoolSize最大线程数、keepAliveTime存活时间、unit时间单位、workQueue等待队列、ThreadFactory线程工厂、Handler饱和策略</p>
-        
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color3">线程</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/08/02/%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8E%9F%E7%90%86/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
   
     <nav id="page-nav">
       <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
@@ -1152,6 +1212,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">IO</a>
               </li>
              
@@ -1164,19 +1228,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">实战Java高并发程序设计</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">同步</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1188,15 +1248,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">序列化</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color3">Java核心卷</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1204,11 +1260,15 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Mybatis</a>
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">Mybatis</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1220,7 +1280,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
+                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1228,11 +1288,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">事务</a>
+                <a href="javascript:void(0)" class="js-tag color4">IOC</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
+                <a href="javascript:void(0)" class="js-tag color3">事务</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1252,19 +1312,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">redis</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">Java基础</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">反射</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1272,11 +1324,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">数组</a>
+                <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">反射</a>
               </li>
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">剑指Offer</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -1285,6 +1345,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">数组</a>
               </li>
              
               <li class="article-tag-list-item">
