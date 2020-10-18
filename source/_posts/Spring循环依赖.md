@@ -51,7 +51,7 @@ Bean的生命周期-BService
 
 ![1](Spring循环依赖/1.png)
 
-#### 放入缓存
+#### 加入一级缓存
 
 ![2](Spring循环依赖/2.png)
 
@@ -81,7 +81,7 @@ Bean的生命周期-BService
 
 **同样的道理，BeanPostProcessor因为可以实现AOP功能，也就是在postProcessAfterInitialization中创建代理对象，将代理对象返回放在容器中，所以也会出现两个对象打破单例规则**
 
-#### 提前生成代理对象
+#### 提前生成代理对象放到缓存
 
 Bean的生命周期-AService
 
@@ -143,7 +143,7 @@ Bean的生命周期-BService
 
 **问题：如果有一个CService和AService也是循环依赖，那么AService需要注入BService的时候，BService在三级缓存中找到了lamda表达式执行了产生了代理对象，注入BService成功了，又需要注入CService，CService也找到了lamda表达式，也执行了一次，产生了两个代理对象，又不是单例了**
 
-#### 二级缓存
+#### 加入二级缓存
 
 Bean的生命周期-AService
 

@@ -178,5 +178,5 @@ public class HashSet<E>
 
 如果我们这里使用null为map.put的参数，直接返回相应的oldValue，也就是null，这时候null==null是true。有相同的元素返回了true，是明显的错误结果
 
-map.put的过程就是先计算key的hashcode，高十六位异或低十六位以后与上table.length-1，计算下标后在对应的哈希桶内找，找的过程就是判断Entry的key的hashcode是否和传入的相同，相同再用=|=和equals判断，如果=|=和equals的其中一个返回true，就是相同的对象
+map.put的过程就是先计算key的hashcode，高十六位异或低十六位以后对table.length-1取余，计算下标后在对应的哈希桶内找，找的过程就是判断Entry的key的hashcode是否和传入的相同，相同再用=|=和equals判断，如果=|=和equals的其中一个返回true，就是相同的对象
 

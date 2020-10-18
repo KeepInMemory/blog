@@ -10,7 +10,7 @@ tags:
 - _owner：指向持有ObjectMonitor对象的线程
 - _WaitSet：存放处于wait状态的线程队列
 - _EntryList：存放处于等待锁block状态的线程队列
-- _recursions：锁的重入次数
+- _recursions：锁的重入次数 
 - _count：用来记录该线程获取锁的次数
 
 ```hpp
@@ -44,7 +44,7 @@ Synchronized代码块对应MonitorEnter、MonitorExit字节码
 
 MonitorEnter：将对象头的Mark Word（HashCode、分代年龄Age等等）替换为指向Monitor的指针，在Monitor对象里进行后续操作
 
-MonitorExit：将对象头MarkWord替换回来，Owner设置为null并唤醒Monitor对象的Entry List
+MonitorExit：Owner设置为null并唤醒Monitor对象的Entry List，将对象头MarkWord替换回来
 
 ![2](Synchronized-Monitor-锁/2.png)
 
@@ -69,7 +69,7 @@ MonitorExit：将对象头MarkWord替换回来，Owner设置为null并唤醒Moni
 
 ### 自旋锁
 
-自旋锁发生在轻量级锁转重量级锁中，当线程在申请重量级锁进入Entry List前会先自旋，如果自旋过程中Monitor被释放了，自己就可以避免阻塞（因为阻塞会发生上下文切换，费时间），自旋后锁还没释放，线程就进入Entry List阻塞
+自旋锁发生在轻量级锁转重量级锁中，线程在申请重量级锁进入Entry List前会先自旋，如果自旋过程中CAS替换成功了，自己就可以避免阻塞（因为阻塞会发生上下文切换，费时间），自旋后锁还没释放，线程就申请重量级锁进入Entry List阻塞
 
 自适应自旋锁：如果对象刚刚的自旋成功了，就多自旋几次，失败了就少自旋几次甚至不自旋
 
@@ -77,7 +77,7 @@ MonitorExit：将对象头MarkWord替换回来，Owner设置为null并唤醒Moni
 
 偏向锁是为了解决轻量级锁重入连续进行CAS并失败的问题，虽然都是自己重入，但每次都要生成一个锁记录，用锁记录替换Mark Word（CAS操作），失败后查看才发现是自己线程的锁记录
 
-偏向锁先将线程ID替换到Mark Word里，之后只要线程ID是自己的，就不用重新CAS
+偏向锁先将线程ID替换到Mark Word里，之后只要线程ID是自己的，就不用重新CAS。线程执行同步块结束后不CAS替换回去，所以底下来了其他线程回去检查线程是否还存活
 
 如果中途有其他线程来竞争该锁，它会首先暂停拥有偏向锁的线程，那么就会查看偏向锁记录的线程是否还存活，如果未存活，将对象头设置成无锁状态（将Mark Word从偏向锁设置为无锁，然后重新偏向当前竞争成功的线程）。如果当前线程还是存活状态，那么就升级成轻量级锁，在原获得偏向锁线程的栈帧中分配锁记录，CAS替换对象头Mark Word，如果原线程CAS成功，那么就从安全点继续执行。竞争该锁的线程也会创建锁记录并CAS替换，成功获得轻量级锁，失败自旋后申请重量级锁
 

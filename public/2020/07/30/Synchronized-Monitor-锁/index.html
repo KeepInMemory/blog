@@ -8,19 +8,19 @@
   <link rel="dns-prefetch" href="http://KeepInMemory.github.io">
   <title>Synchronized底层-Monitor | HanBlog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：  _owner：指向持有ObjectMonitor对象的线程 _WaitSet：存放处于wait状态的线程队列 _EntryList：存放处于等待锁block状态的线程队列 _recursions：锁的重入次数 _count：用来记录该线程获取锁的次数  123">
+  <meta name="description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：  _owner：指向持有ObjectMonitor对象的线程 _WaitSet：存放处于wait状态的线程队列 _EntryList：存放处于等待锁block状态的线程队列 _recursions：锁的重入次数  _count：用来记录该线程获取锁的次数  12">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Synchronized底层-Monitor">
 <meta property="og:url" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/index.html">
 <meta property="og:site_name" content="HanBlog">
-<meta property="og:description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：  _owner：指向持有ObjectMonitor对象的线程 _WaitSet：存放处于wait状态的线程队列 _EntryList：存放处于等待锁block状态的线程队列 _recursions：锁的重入次数 _count：用来记录该线程获取锁的次数  123">
+<meta property="og:description" content="每个Java对象都可以在Mark Word对象头关联一个Monitor对象（操作系统层面），ObjectMonitor中有几个关键属性：  _owner：指向持有ObjectMonitor对象的线程 _WaitSet：存放处于wait状态的线程队列 _EntryList：存放处于等待锁block状态的线程队列 _recursions：锁的重入次数  _count：用来记录该线程获取锁的次数  12">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/1.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/2.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/3.png">
 <meta property="og:image" content="http://keepinmemory.github.io/2020/07/30/Synchronized-Monitor-%E9%94%81/Synchronized-Monitor-%E9%94%81%5Csync.jpg">
 <meta property="article:published_time" content="2020-07-30T04:28:48.000Z">
-<meta property="article:modified_time" content="2020-09-28T00:26:08.302Z">
+<meta property="article:modified_time" content="2020-10-18T13:29:49.358Z">
 <meta property="article:author" content="Xuesong">
 <meta property="article:tag" content="Synchronized">
 <meta name="twitter:card" content="summary">
@@ -183,7 +183,7 @@
 <li>_owner：指向持有ObjectMonitor对象的线程</li>
 <li>_WaitSet：存放处于wait状态的线程队列</li>
 <li>_EntryList：存放处于等待锁block状态的线程队列</li>
-<li>_recursions：锁的重入次数</li>
+<li>_recursions：锁的重入次数 </li>
 <li>_count：用来记录该线程获取锁的次数</li>
 </ul>
 <figure class="highlight hpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">ObjectMonitor() &#123;</span><br><span class="line">_header       = <span class="literal">NULL</span>;</span><br><span class="line">_count        = <span class="number">0</span>;</span><br><span class="line">_waiters      = <span class="number">0</span>,</span><br><span class="line">_recursions   = <span class="number">0</span>;</span><br><span class="line">_object       = <span class="literal">NULL</span>;</span><br><span class="line">_owner        = <span class="literal">NULL</span>;</span><br><span class="line">_WaitSet      = <span class="literal">NULL</span>;</span><br><span class="line">_WaitSetLock  = <span class="number">0</span> ;</span><br><span class="line">_Responsible  = <span class="literal">NULL</span> ;</span><br><span class="line">_succ         = <span class="literal">NULL</span> ;</span><br><span class="line">_cxq          = <span class="literal">NULL</span> ;</span><br><span class="line">FreeNext      = <span class="literal">NULL</span> ;</span><br><span class="line">_EntryList    = <span class="literal">NULL</span> ;</span><br><span class="line">_SpinFreq     = <span class="number">0</span> ;</span><br><span class="line">_SpinClock    = <span class="number">0</span> ;</span><br><span class="line">OwnerIsThread = <span class="number">0</span> ;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -194,7 +194,7 @@
 <p><img src="/2020/07/30/Synchronized-Monitor-%E9%94%81/1.png" alt="1"></p>
 <p>Synchronized代码块对应MonitorEnter、MonitorExit字节码</p>
 <p>MonitorEnter：将对象头的Mark Word（HashCode、分代年龄Age等等）替换为指向Monitor的指针，在Monitor对象里进行后续操作</p>
-<p>MonitorExit：将对象头MarkWord替换回来，Owner设置为null并唤醒Monitor对象的Entry List</p>
+<p>MonitorExit：Owner设置为null并唤醒Monitor对象的Entry List，将对象头MarkWord替换回来</p>
 <p><img src="/2020/07/30/Synchronized-Monitor-%E9%94%81/2.png" alt="2"></p>
 <p><img src="/2020/07/30/Synchronized-Monitor-%E9%94%81/3.png" alt="3"></p>
 <h3 id="轻量级锁"><a href="#轻量级锁" class="headerlink" title="轻量级锁"></a>轻量级锁</h3><p>线程在执行同步块之前，JVM会先在当前线程的栈帧中创建轻量级锁记录（锁记录地址、轻量级标志、要替换的锁对象地址），将锁记录的地址和轻量级锁标志CAS替换对象头中的Mark Word（Hashcode、分代年龄）。替换成功获得锁，失败则进行检查，看锁记录地址是否是自己线程里的一条锁记录，是自己的就发生重入，不是进行锁膨胀。</p>
@@ -202,10 +202,10 @@
 <h3 id="锁膨胀"><a href="#锁膨胀" class="headerlink" title="锁膨胀"></a>锁膨胀</h3><p>轻量级锁有两个地方会发生锁膨胀，一是获取轻量级锁失败， 二是轻量级解锁失败</p>
 <p>如果线程A已经获取了轻量级锁，更改了MarkWord的值，线程B再CAS获取轻量级锁会失败，失败进行锁膨胀，因为轻量级锁没有Monitor，也没有Bolcked的地方，所以线程B会申请关联Monitor，将轻量级锁的MarkWord改为重量级锁Monitor，同时线程B到EntryList中阻塞</p>
 <p>过段时间线程A的同步代码块执行完毕了，想CAS替换回最初的Mark Word(HashCode、age)，发现MarkWord被改了CAS失败，这时候线程A也走重量级锁的解锁流程，到Monitor中把Owner置为null，同时去EntryList唤醒阻塞线程</p>
-<h3 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h3><p>自旋锁发生在轻量级锁转重量级锁中，当线程在申请重量级锁进入Entry List前会先自旋，如果自旋过程中Monitor被释放了，自己就可以避免阻塞（因为阻塞会发生上下文切换，费时间），自旋后锁还没释放，线程就进入Entry List阻塞</p>
+<h3 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h3><p>自旋锁发生在轻量级锁转重量级锁中，线程在申请重量级锁进入Entry List前会先自旋，如果自旋过程中CAS替换成功了，自己就可以避免阻塞（因为阻塞会发生上下文切换，费时间），自旋后锁还没释放，线程就申请重量级锁进入Entry List阻塞</p>
 <p>自适应自旋锁：如果对象刚刚的自旋成功了，就多自旋几次，失败了就少自旋几次甚至不自旋</p>
 <h3 id="偏向锁"><a href="#偏向锁" class="headerlink" title="偏向锁"></a>偏向锁</h3><p>偏向锁是为了解决轻量级锁重入连续进行CAS并失败的问题，虽然都是自己重入，但每次都要生成一个锁记录，用锁记录替换Mark Word（CAS操作），失败后查看才发现是自己线程的锁记录</p>
-<p>偏向锁先将线程ID替换到Mark Word里，之后只要线程ID是自己的，就不用重新CAS</p>
+<p>偏向锁先将线程ID替换到Mark Word里，之后只要线程ID是自己的，就不用重新CAS。线程执行同步块结束后不CAS替换回去，所以底下来了其他线程回去检查线程是否还存活</p>
 <p>如果中途有其他线程来竞争该锁，它会首先暂停拥有偏向锁的线程，那么就会查看偏向锁记录的线程是否还存活，如果未存活，将对象头设置成无锁状态（将Mark Word从偏向锁设置为无锁，然后重新偏向当前竞争成功的线程）。如果当前线程还是存活状态，那么就升级成轻量级锁，在原获得偏向锁线程的栈帧中分配锁记录，CAS替换对象头Mark Word，如果原线程CAS成功，那么就从安全点继续执行。竞争该锁的线程也会创建锁记录并CAS替换，成功获得轻量级锁，失败自旋后申请重量级锁</p>
 <h3 id="锁消除"><a href="#锁消除" class="headerlink" title="锁消除"></a>锁消除</h3><p>锁消除理解起来很简单，它指的就是虚拟机即使编译器在运行时，如果检测到那些共享数据不可能存在竞争，那么就执行锁消除。锁消除可以节省毫无意义的请求锁的时间。</p>
 <p><img src="/2020/07/30/Synchronized-Monitor-%E9%94%81/Synchronized-Monitor-%E9%94%81%5Csync.jpg" alt="sync"></p>
@@ -460,19 +460,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">IO</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color3">面经</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">集合</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -480,15 +468,19 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">同步</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">线程池</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">IO</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">集合</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">LeetCode</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -496,7 +488,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
+                <a href="javascript:void(0)" class="js-tag color5">IO模型</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -504,11 +496,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">同步</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">序列化</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">JVM</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">JMM</a>
+                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -520,19 +524,7 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">NIO</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color2">spring</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">AOP</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -544,6 +536,14 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">Jdbc</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color4">AOP</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">SpringBoot</a>
               </li>
              
@@ -552,11 +552,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
+                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color2">ThreadLocal</a>
+                <a href="javascript:void(0)" class="js-tag color3">Synchronized</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -568,19 +568,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
-              </li>
-             
-              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">函数式编程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">反射</a>
-              </li>
-             
-              <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+                <a href="javascript:void(0)" class="js-tag color4">内部类</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -588,11 +580,11 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">泛型</a>
+                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">设计模式</a>
+                <a href="javascript:void(0)" class="js-tag color3">反射</a>
               </li>
              
               <li class="article-tag-list-item">
@@ -600,15 +592,23 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
               </li>
              
               <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color3">接口</a>
+              </li>
+             
+              <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color4">红黑树</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color5">sync</a>
+                <a href="javascript:void(0)" class="js-tag color3">线程</a>
               </li>
              
               <li class="article-tag-list-item">
-                <a href="javascript:void(0)" class="js-tag color3">线程</a>
+                <a href="javascript:void(0)" class="js-tag color3">泛型</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color5">sync</a>
               </li>
              
               <li class="article-tag-list-item">

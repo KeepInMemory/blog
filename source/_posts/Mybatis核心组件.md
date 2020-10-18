@@ -33,10 +33,7 @@ public class Configuration {
    	//...
 ```
 
-当解析mapper.xml的mappers标签时，它会判断解析到的是mapper配置文件时，会再将对应配置文件中的增删改查标签一 一封装成MappedStatement对象，存入mappedStatements中。
-
-MappedStatement与Mapper配置文件中的一个SQL对应，主要用途是描述一条SQL语句。
-一个select标签会在初始化配置文件时被解析封装成一个MappedStatement对象，然后存储在Configuration对象的mappedStatements属性中，mappedStatements 是一个HashMap，存储时key = namespace + id，value = 对应的MappedStatement对象。
+当解析mapper.xml的mappers标签时，会再将对应配置文件中的增删改查标签一 一封装成MappedStatement对象，MappedStatement与Mapper配置文件中的一个SQL对应，主要用途是描述一条SQL语句，它会被存入Configuration的mappedStatements中。mappedStatements 是一个HashMap，存储时key = namespace + id，value = 对应的MappedStatement对象。
 
 当判断解析到接口时，会创建此接口对应的MapperProxyFactory对象，存入mapperRegistry的knownMappers中，key = 接口的Class对象，value = 此接口对应的MapperProxyFactory对象。
 
@@ -44,7 +41,9 @@ MappedStatement与Mapper配置文件中的一个SQL对应，主要用途是描�
 SqlSession中的两个最重要的参数，configuration与初始化时的相同，Executor为执行器。Executor也是一个接口，他有三个常用的实现类BatchExecutor（重用语句并执行批量更新），ReuseExecutor（重用预处理语句prepared statements），SimpleExecutor（普通的执行器，默认）。
 
 3.执行SqlSession.selectOne(namespace+id,参数)方法时，会获取相应的MappedStatement，交给executor去执行底层的jdbc代码
-执行SqlSession.getMapper(Mapper接口的字节码对象)方法是，会去获取Configuration对象的MapperRegistry的Map<Class<?>, MapperProxyFactory<?>> knownMappers，拿到对应的MapperProxyFactory动态代理工厂，去生成相应的MapperProxy实例返回，使用了JDK动态代理MapperProxy实现了InvocationHandler接口，重写了invoke方法。getMapper获取到的实际上是MapperProxy，调用了里面的代理方法，执行jdbc代码。Mapper接口对应的Sql语句的获取是通过将SqlSession一步步传入，sqlSession的Configuration里有，在底层进行获取
+执行SqlSession.getMapper(Mapper接口的字节码对象)方法是，会去获取Configuration对象的MapperRegistry的Map<Class<?>, MapperProxyFactory<?>> knownMappers，拿到对应的MapperProxyFactory动态代理工厂，去生成相应的MapperProxy实例返回，使用了JDK动态代理的MapperProxy实现了InvocationHandler接口，重写了invoke方法。getMapper获取到的实际上是MapperProxy，调用了里面的代理方法，代理方法增加了jdbc的代码。
+
+Mapper接口对应的Sql语句的获取是通过将SqlSession一步步传入，sqlSession的Configuration里有，在底层进行获取
 
 Note：
 
